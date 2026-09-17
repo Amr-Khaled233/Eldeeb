@@ -7,9 +7,6 @@
 
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
-  var cfg = ContentStore.config;
-  var HASH_KEY = cfg.storagePrefix + ':admin:hash';
-  var SESSION_KEY = cfg.storagePrefix + ':admin:session';
   var THEME_KEY = 'bc:admin-theme';
 
   var state = {
@@ -19,6 +16,7 @@
     open: {},          // عناصر القوائم المفتوحة
     lists: {},         // مسار القائمة ← تعريفها
     previewLang: 'ar',
+    status: { mode: 'local' },
     device: 'desktop'
   };
 
@@ -59,13 +57,6 @@
     clearTimeout(toast.t);
     toast.t = setTimeout(function () { el.className = 'toast'; }, 3200);
   }
-  function sha256(text) {
-    if (!window.crypto || !crypto.subtle) return Promise.reject(new Error('insecure'));
-    return crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)).then(function (buf) {
-      return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
-    });
-  }
-  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } }
 
   /* ---------------- Schemas ---------------- */
@@ -172,36 +163,6 @@
         })
       ])
     },
-    stats: {
-      name: 'الأرقام والإنجازات', icon: 'calc', desc: 'عدادات متحركة تظهر عند الوصول للقسم.',
-      fields: HEAD_FIELDS.concat([
-        F('items', 'الأرقام', 'list', {
-          item: 'رقم', titleKey: 'label',
-          fields: [
-            F('value', 'الرقم', 'number', { hint: 'يمكن استخدام كسور مثل 1.2' }),
-            L('suffix', 'اللاحقة', 'text', { hint: 'مثل: + أو % أو M م²' }),
-            L('label', 'الوصف')
-          ],
-          template: { value: 100, suffix: { ar: '+', en: '+' }, label: { ar: '', en: '' } }
-        })
-      ])
-    },
-    testimonials: {
-      name: 'آراء العملاء', icon: 'quote', desc: 'سلايدر آراء العملاء مع التقييم.',
-      fields: HEAD_FIELDS.concat([
-        F('items', 'الآراء', 'list', {
-          item: 'رأي', titleKey: 'name',
-          fields: [
-            L('name', 'اسم العميل'),
-            L('role', 'الوظيفة / الشركة'),
-            L('text', 'الرأي', 'textarea', { rows: 3 }),
-            F('rating', 'التقييم', 'select', { options: [[5, '★★★★★ (5)'], [4, '★★★★ (4)'], [3, '★★★ (3)'], [2, '★★ (2)'], [1, '★ (1)'], [0, 'بدون تقييم']], numeric: true }),
-            F('avatar', 'صورة العميل (اختياري)', 'image', { maxW: 240, square: true })
-          ],
-          template: { name: { ar: 'عميل جديد', en: 'New client' }, role: { ar: '', en: '' }, text: { ar: '', en: '' }, rating: 5, avatar: '' }
-        })
-      ])
-    },
     contact: {
       name: 'تواصل معنا', icon: 'mail', desc: 'بطاقات التواصل وأزرار واتساب والاتصال. البيانات نفسها من "الإعدادات العامة".',
       fields: HEAD_FIELDS.concat([
@@ -240,49 +201,7 @@
     return data;
   }
 
-  var FONT_OPTS = function (script) {
-    return Object.keys(I18N.FONTS).filter(function (n) { return I18N.FONTS[n].script === script || script === 'any'; })
-      .map(function (n) { return [n, n]; });
-  };
-  var COLOR_SET = function () {
-    return [F('background', 'الخلفية', 'color'), F('surface', 'البطاقات', 'color'), F('text', 'النص', 'color'), F('muted', 'النص الثانوي', 'color')];
-  };
-
   var SETTINGS_CARDS = [
-    {
-      title: 'الهوية', icon: 'building', desc: 'اسم الشركة واللوجو.',
-      fields: [
-        L('siteName', 'اسم الشركة الكامل'),
-        L('logoText', 'اسم اللوجو (نص)'),
-        L('logoSubtext', 'السطر الصغير تحت اللوجو'),
-        F('logoImage', 'شعار الهيدر', 'image', { maxW: 600, keepAlpha: true, contain: true, hint: 'يفضل صورة شفافة الخلفية (PNG أو WebP)' }),
-        F('hideLogoText', 'إخفاء اسم الشركة بجانب الشعار', 'toggle', { off: true }),
-        F('logoFull', 'اللوجو الكامل (الفوتر)', 'image', { maxW: 800, keepAlpha: true, contain: true }),
-        L('tagline', 'نبذة قصيرة (الفوتر)', 'textarea', { rows: 2 })
-      ]
-    },
-    {
-      title: 'اللغة والمظهر', icon: 'settings', desc: 'اللغة والوضع الافتراضي والخطوط.',
-      cols: 2,
-      fields: [
-        F('defaultLang', 'اللغة الافتراضية', 'select', { options: [['ar', 'العربية'], ['en', 'English']] }),
-        F('showLangSwitch', 'إظهار زر تبديل اللغة', 'toggle'),
-        F('defaultTheme', 'الوضع الافتراضي', 'select', { options: [['dark', 'داكن'], ['light', 'فاتح'], ['system', 'حسب جهاز الزائر']] }),
-        F('showThemeSwitch', 'إظهار زر الداكن/الفاتح', 'toggle'),
-        F('fonts.ar', 'خط اللغة العربية', 'select', { options: FONT_OPTS('ar'), hint: 'IBM Plex Sans Arabic هو الأوضح للقراءة' }),
-        F('fonts.en', 'خط اللغة الإنجليزية', 'select', { options: FONT_OPTS('any') }),
-        F('numerals', 'شكل الأرقام في النسخة العربية', 'select', { options: [['latin', '123 (لاتينية)'], ['arabic', '١٢٣ (هندية)']] })
-      ]
-    },
-    {
-      title: 'الألوان', icon: 'paint', desc: 'اللون الأساسي مشترك، ولكل وضع ألوانه الخاصة.',
-      id: 'colors',
-      fields: [
-        F('colors.primary', 'اللون الأساسي', 'color', { presets: ['#C89D2A', '#D4A937', '#B8891F', '#E0B64A', '#F59E0B', '#8D959E'] }),
-        F('colors.dark', 'الوضع الداكن', 'group', { fields: COLOR_SET(), cols: 2 }),
-        F('colors.light', 'الوضع الفاتح', 'group', { fields: COLOR_SET(), cols: 2 })
-      ]
-    },
     {
       title: 'بيانات التواصل', icon: 'phone', desc: 'تظهر في قسم التواصل والفوتر وزر واتساب.',
       cols: 2,
@@ -482,41 +401,6 @@
         return '<div class="card"><h2>' + icon(c.icon) + esc(c.title) + '</h2><p class="card-desc">' + esc(c.desc) + '</p>' +
           renderFields(c.fields, 'settings', c.cols) + '</div>';
       }).join('');
-    },
-
-    data: function () {
-      var used = 0;
-      try {
-        for (var k in localStorage) {
-          if (Object.prototype.hasOwnProperty.call(localStorage, k)) used += (localStorage.getItem(k) || '').length + k.length;
-        }
-      } catch (e) { /* ignore */ }
-      var usedKb = Math.round(used * 2 / 1024);
-      var pct = Math.min(100, Math.round(used * 2 / (5 * 1024 * 1024) * 100));
-      var isDefault = (lsGet(HASH_KEY) || cfg.adminPasswordHash) === cfg.adminPasswordHash;
-      return '<div class="card"><h2>' + icon('database') + 'كيف يتم حفظ المحتوى؟</h2>' +
-        '<p class="card-desc">حاليًا التعديلات تُحفظ في <b>هذا المتصفح فقط</b> (localStorage). لنشرها لكل زوار الموقع:</p>' +
-        '<ol class="steps"><li>اضغط <b>تصدير data.json</b> بالأسفل.</li>' +
-        '<li>استبدل ملف <code>data.json</code> في مشروعك على GitHub بالملف الجديد.</li>' +
-        '<li>Vercel سيعيد النشر تلقائيًا خلال ثوانٍ، وتظهر التعديلات للجميع.</li></ol>' +
-        '<p class="card-desc" style="margin:12px 0 0">لاحقًا يمكن ربط اللوحة بقاعدة بيانات (Upstash / Supabase) ليكون الحفظ فوريًا. راجع README.</p></div>' +
-
-        '<div class="card"><h2>' + icon('download') + 'النسخ الاحتياطي</h2><div class="tools-grid">' +
-        '<div class="tool"><b>' + icon('download') + 'تصدير data.json</b><p>تحميل كل المحتوى والإعدادات كملف.</p><button type="button" class="btn primary" data-action="export">تصدير الملف</button></div>' +
-        '<div class="tool"><b>' + icon('upload') + 'استيراد ملف</b><p>تحميل ملف data.json سابق (يستبدل المحتوى الحالي كمسودة).</p><label class="btn file-btn">اختيار ملف<input type="file" accept="application/json,.json" id="importFile"></label></div>' +
-        '<div class="tool"><b>' + icon('refresh') + 'تجاهل المسودة</b><p>الرجوع لآخر نسخة تم نشرها.</p><button type="button" class="btn" data-action="discard">تجاهل التغييرات</button></div>' +
-        '<div class="tool"><b>' + icon('trash') + 'استعادة الافتراضي</b><p>حذف كل التعديلات المحفوظة في المتصفح والرجوع لمحتوى data.json.</p><button type="button" class="btn danger" data-action="reset">استعادة</button></div>' +
-        '</div>' +
-        '<div style="margin-top:16px" class="field"><span class="field-label">مساحة التخزين المستخدمة: ' + usedKb + ' KB من ~5 MB</span><div class="meter"><span style="width:' + pct + '%"></span></div>' +
-        '<small class="hint">الصور المرفوعة تستهلك أغلب المساحة. للمواقع الكبيرة يفضل رفع الصور داخل مجلد assets/images واستخدام مسارها.</small></div></div>' +
-
-        '<div class="card"><h2>' + icon('lock') + 'كلمة مرور اللوحة</h2>' +
-        (isDefault ? '<p class="card-desc" style="color:var(--danger)">⚠ أنت تستخدم كلمة المرور الافتراضية (admin123). غيّرها الآن.</p>' : '<p class="card-desc">كلمة المرور محفوظة بشكل مشفّر (SHA-256) في هذا المتصفح.</p>') +
-        '<form id="passForm" class="fields cols-2">' +
-        '<label class="field"><span>كلمة المرور الجديدة</span><input type="password" id="newPass" minlength="6" required autocomplete="new-password"></label>' +
-        '<label class="field"><span>تأكيد كلمة المرور</span><input type="password" id="newPass2" minlength="6" required autocomplete="new-password"></label>' +
-        '<div><button class="btn primary" type="submit">تغيير كلمة المرور</button></div></form>' +
-        '<p class="card-desc" style="margin:12px 0 0">ملاحظة: هذه حماية بسيطة على مستوى المتصفح. للحماية الحقيقية فعّل <b>Vercel Password Protection</b> أو اربط اللوحة بباك إند (راجع README).</p></div>';
     }
   };
 
@@ -527,8 +411,7 @@
     }
     return {
       sections: { title: 'إدارة الأقسام', desc: 'الترتيب والإظهار والإخفاء' },
-      settings: { title: 'الإعدادات العامة', desc: 'الهوية والألوان والخطوط وبيانات التواصل' },
-      data: { title: 'البيانات والأمان', desc: 'النشر والنسخ الاحتياطي وكلمة المرور' }
+      settings: { title: 'الإعدادات العامة', desc: 'بيانات التواصل والسوشيال ميديا ومحركات البحث' }
     }[view] || { title: '', desc: '' };
   }
 
@@ -547,9 +430,7 @@
       '<div class="sb-group">عام</div>' +
       item('sections', 'layers', 'ترتيب وإظهار الأقسام') +
       item('settings', 'settings', 'الإعدادات العامة') +
-      '<div class="sb-group">محتوى الأقسام</div>' + secs +
-      '<div class="sb-group">النظام</div>' +
-      item('data', 'database', 'البيانات والأمان');
+      '<div class="sb-group">محتوى الأقسام</div>' + secs;
     $('#sbSite').textContent = ar(state.data.settings.siteName);
   }
 
@@ -564,7 +445,6 @@
     $('#viewDesc').textContent = meta.desc;
     renderSidebar();
     if (view === 'sections') initSortable();
-    if (view === 'data') initDataView();
     window.scrollTo(0, keepScroll ? y : 0);
   }
 
@@ -588,7 +468,7 @@
       console.error(e);
       toast(e && e.name === 'QuotaExceededError' ? 'مساحة التخزين ممتلئة، احذف أو صغّر بعض الصور' : 'تعذر حفظ المسودة', true);
     });
-  }, 450);
+  }, 1200);
   function changed() {
     updateSaveState();
     saveDraft();
@@ -603,10 +483,11 @@
       state.publishedJson = strip(saved);
       updateSaveState();
       renderView(true);
-      toast('تم الحفظ والنشر ✓ (لنشره لكل الزوار: صدّر data.json)');
+      toast(state.status.mode === 'api' ? 'تم الحفظ والنشر ✓ ظهر للزوار الآن' : 'تم الحفظ ✓ (وضع محلي: في هذا المتصفح فقط)');
     }).catch(function (e) {
       console.error(e);
-      toast(e && e.name === 'QuotaExceededError' ? 'مساحة التخزين ممتلئة، صغّر الصور المرفوعة' : 'فشل الحفظ: ' + (e.message || e), true);
+      toast(e && e.status === 401 ? 'انتهت الجلسة، سجّل الدخول مرة أخرى' : (e && e.status === 413 ? 'المحتوى كبير جدًا، استخدم روابط للصور بدل رفعها' : 'فشل الحفظ: ' + (e.message || e)), true);
+      if (e && e.status === 401) setTimeout(function () { ContentStore.logout(); location.reload(); }, 1500);
     }).then(function () { btn.disabled = false; });
   }
 
@@ -716,26 +597,6 @@
         setPath(state.data, btn.getAttribute('data-path'), btn.getAttribute('data-value'));
         applyAdminColor();
         break;
-      case 'export':
-        exportJson();
-        return;
-      case 'discard':
-        if (!confirm('سيتم تجاهل كل التغييرات غير المنشورة. متابعة؟')) return;
-        state.data = JSON.parse(state.publishedJson);
-        ContentStore.saveDraft(state.data);
-        toast('تم الرجوع لآخر نسخة منشورة');
-        break;
-      case 'reset':
-        if (!confirm('سيتم حذف كل التعديلات المحفوظة في هذا المتصفح والرجوع لمحتوى data.json. متابعة؟')) return;
-        ContentStore.reset().then(ContentStore.loadDefaults).then(function (d) {
-          state.data = d;
-          state.publishedJson = strip(d);
-          updateSaveState();
-          applyAdminColor();
-          renderView(true);
-          toast('تمت الاستعادة');
-        });
-        return;
       default:
         return;
     }
@@ -807,10 +668,13 @@
       toast('جاري ضغط الصورة...');
       processImage(file, { maxW: +el.getAttribute('data-maxw') || 1600, alpha: el.hasAttribute('data-alpha'), square: el.hasAttribute('data-square') })
         .then(function (dataUrl) {
-          setPath(state.data, path, dataUrl);
-          renderView(true);
-          changed();
-          toast('تم رفع الصورة (' + Math.round(dataUrl.length * 0.75 / 1024) + ' KB)');
+          toast('جاري رفع الصورة...');
+          return ContentStore.uploadImage(dataUrl, file.name).then(function (url) {
+            setPath(state.data, path, url);
+            renderView(true);
+            changed();
+            toast(url.indexOf('data:') === 0 ? 'تم إضافة الصورة (' + Math.round(url.length * 0.75 / 1024) + ' KB)' : 'تم رفع الصورة ✓');
+          });
         })
         .catch(function (err) { toast(err.message, true); });
       return;
@@ -859,55 +723,6 @@
       dragIndex = null;
       renderView(true);
       changed();
-    });
-  }
-
-  /* ---------------- Data view ---------------- */
-  function exportJson() {
-    var data = clone(state.data);
-    delete data.updatedAt;
-    var blob = new Blob([JSON.stringify(data, null, 2) + '\n'], { type: 'application/json' });
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'data.json';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
-    toast('تم تصدير data.json، ارفعه مكان الملف القديم في المشروع');
-  }
-
-  function initDataView() {
-    var imp = $('#importFile');
-    imp.addEventListener('change', function () {
-      var file = imp.files[0];
-      if (!file) return;
-      file.text().then(function (txt) {
-        var parsed = JSON.parse(txt);
-        if (!parsed || !parsed.settings || !Array.isArray(parsed.sections)) throw new Error('الملف لا يحتوي على بنية المحتوى الصحيحة');
-        return ContentStore.normalize(parsed);
-      }).then(function (d) {
-        state.data = d;
-        applyAdminColor();
-        renderView(true);
-        changed();
-        toast('تم الاستيراد كمسودة، اضغط "حفظ ونشر" لاعتماده');
-      }).catch(function (err) {
-        toast('فشل الاستيراد: ' + err.message, true);
-      });
-    });
-
-    $('#passForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      var p1 = $('#newPass').value, p2 = $('#newPass2').value;
-      if (p1.length < 6) return toast('كلمة المرور يجب ألا تقل عن 6 أحرف', true);
-      if (p1 !== p2) return toast('كلمتا المرور غير متطابقتين', true);
-      sha256(p1).then(function (h) {
-        lsSet(HASH_KEY, h);
-        try { sessionStorage.setItem(SESSION_KEY, h); } catch (err) { /* ignore */ }
-        toast('تم تغيير كلمة المرور ✓');
-        renderView(true);
-        $('#notice').hidden = true;
-      });
     });
   }
 
@@ -984,51 +799,30 @@
   }
 
   /* ---------------- Auth ---------------- */
-  var API_MODE = cfg.dataSource === 'api';
-  function currentHash() { return lsGet(HASH_KEY) || cfg.adminPasswordHash; }
-  function isLoggedIn() {
-    try {
-      var s = sessionStorage.getItem(SESSION_KEY);
-      return API_MODE ? s === 'api' && !!sessionStorage.getItem(ContentStore.keys.token) : s === currentHash();
-    } catch (e) { return false; }
-  }
-  // وضع الـ API: كلمة المرور = ADMIN_TOKEN على الخادم ويتم التحقق منها هناك
-  function apiLogin(pass) {
-    return fetch(cfg.apiBase + '/content?draft=1', { headers: { Authorization: 'Bearer ' + pass } }).then(function (r) {
-      if (r.status === 401 || r.status === 403) throw new Error('wrong');
-      ContentStore.setApiToken(pass);
-      sessionStorage.setItem(SESSION_KEY, 'api');
-    });
-  }
+  var LOGIN_ERRORS = {
+    wrong_password: 'كلمة المرور غير صحيحة',
+    password_not_configured: 'لم يتم ضبط كلمة المرور على Vercel بعد (متغير ADMIN_PASSWORD). راجع README.',
+    server_error: 'تعذر الاتصال بالخادم، حاول مرة أخرى',
+    insecure_context: 'افتح اللوحة عبر https أو localhost لتفعيل تسجيل الدخول.'
+  };
   function showLogin() {
     $('#login').hidden = false;
     $('#app').hidden = true;
     $('#loginLogo').innerHTML = '<img src="assets/images/logo-mark.webp" alt="">';
-    if (!window.crypto || !crypto.subtle) {
-      $('#loginError').textContent = 'افتح اللوحة عبر https أو localhost لتفعيل تسجيل الدخول.';
-    }
     $('#loginForm').onsubmit = function (e) {
       e.preventDefault();
-      if (API_MODE) {
-        apiLogin($('#loginPass').value).then(function () {
-          $('#login').hidden = true;
-          startApp();
-        }).catch(function () {
-          $('#loginError').textContent = 'كلمة المرور غير صحيحة أو الخادم غير متاح';
-        });
-        return;
-      }
-      sha256($('#loginPass').value).then(function (h) {
-        if (h !== currentHash()) {
-          $('#loginError').textContent = 'كلمة المرور غير صحيحة';
+      var btn = $('#loginForm button');
+      btn.disabled = true;
+      $('#loginError').textContent = '';
+      ContentStore.login($('#loginPass').value).then(function (res) {
+        btn.disabled = false;
+        if (!res.ok) {
+          $('#loginError').textContent = LOGIN_ERRORS[res.reason] || LOGIN_ERRORS.server_error;
           $('#loginPass').select();
           return;
         }
-        try { sessionStorage.setItem(SESSION_KEY, h); } catch (err) { /* ignore */ }
         $('#login').hidden = true;
         startApp();
-      }).catch(function () {
-        $('#loginError').textContent = 'المتصفح لا يدعم التشفير على هذا الرابط (استخدم https أو localhost).';
       });
     };
     setTimeout(function () { $('#loginPass').focus(); }, 50);
@@ -1039,9 +833,10 @@
   function startApp() {
     if (started) return;
     started = true;
-    Promise.all([ContentStore.load({ draft: true }), ContentStore.load()]).then(function (res) {
+    Promise.all([ContentStore.load({ draft: true }), ContentStore.loadPublished(), ContentStore.status()]).then(function (res) {
       state.data = res[0];
       state.publishedJson = strip(res[1]);
+      state.status = res[2];
       $('#app').hidden = false;
 
       $('#sbLogo').innerHTML = '<img src="assets/images/logo-mark.webp" alt="">';
@@ -1053,10 +848,16 @@
       syncThemeBtn();
       applyAdminColor();
 
-      if (!API_MODE && currentHash() === cfg.adminPasswordHash) {
+      var st = state.status;
+      var conn = $('#dbState');
+      conn.className = 'db-state ' + (st.mode === 'api' ? 'is-on' : 'is-off');
+      conn.innerHTML = icon('database') + '<span>' + (st.mode === 'api'
+        ? 'متصل بقاعدة البيانات' + (st.blob ? '' : ' (رفع الصور غير مفعّل)')
+        : (st.api ? 'قاعدة البيانات غير مربوطة' : 'وضع محلي (بدون قاعدة بيانات)')) + '</span>';
+      if (st.api && st.mode !== 'api') {
         var n = $('#notice');
         n.hidden = false;
-        n.innerHTML = '⚠ أنت تستخدم كلمة المرور الافتراضية. <a href="#data" data-action="go" data-view="data">غيّرها من هنا</a>.';
+        n.innerHTML = '⚠ قاعدة البيانات غير مربوطة بالمشروع على Vercel، فالتعديلات لن تُحفظ للزوار. اربط Upstash Redis من Storage ثم أعد النشر (راجع README).';
       }
 
       var editor = $('#editor');
@@ -1073,7 +874,7 @@
       $('#sbToggle').addEventListener('click', function () { $('#app').classList.toggle('sb-open'); });
       $('#sbBackdrop').addEventListener('click', function () { $('#app').classList.remove('sb-open'); });
       $('#logoutBtn').addEventListener('click', function () {
-        try { sessionStorage.removeItem(SESSION_KEY); } catch (e) { /* ignore */ }
+        ContentStore.logout();
         location.reload();
       });
       $('#themeToggle').addEventListener('click', function () {
@@ -1091,7 +892,7 @@
       initPreview();
 
       var hash = decodeURIComponent(location.hash.slice(1));
-      if (hash === 'settings' || hash === 'data' || hash === 'sections' || (hash.indexOf('section:') === 0 && sectionIndex(hash.slice(8)) >= 0)) {
+      if (hash === 'settings' || hash === 'sections' || (hash.indexOf('section:') === 0 && sectionIndex(hash.slice(8)) >= 0)) {
         state.view = hash;
       }
       renderView(false);
@@ -1105,8 +906,10 @@
   }
 
   function boot() {
-    if (isLoggedIn()) startApp();
-    else showLogin();
+    ContentStore.isLoggedIn().then(function (ok) {
+      if (ok) startApp();
+      else showLogin();
+    });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

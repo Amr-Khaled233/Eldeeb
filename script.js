@@ -40,17 +40,20 @@
         return '<li>' + icon('shield') + te(b.text) + '</li>';
       }).join('');
       var hl = t(d.highlight);
+      // المشهد بعرض الشاشة (بدون نص)، والنص في قسم مستقل يظهر بعد انتهاء البناء
       return '<section id="' + esc(s.id) + '" class="hero" aria-label="' + te(s.label) + '">' +
-        '<div class="hero-scene" aria-hidden="true"><svg id="citySvg" preserveAspectRatio="xMidYMax slice" direction="ltr"></svg></div>' +
-        '<div class="hero-scrim" aria-hidden="true"></div>' +
-        '<div class="hero-inner"><div class="hero-content">' +
-        (t(d.eyebrow) ? '<span class="eyebrow">' + te(d.eyebrow) + '</span>' : '') +
-        '<h1 class="hero-title">' + S.words(t(d.title)) + (hl ? '<span class="accent">' + S.words(hl) + '</span>' : '') + '</h1>' +
-        (t(d.subtitle) ? '<p class="hero-sub">' + te(d.subtitle) + '</p>' : '') +
-        (btns ? '<div class="hero-actions">' + btns + '</div>' : '') +
-        (badges ? '<ul class="hero-badges">' + badges + '</ul>' : '') +
-        '</div></div>' +
-        '</section>';
+        '<div class="hero-scene" aria-hidden="true"><svg id="citySvg" preserveAspectRatio="xMidYMid slice" direction="ltr"></svg></div>' +
+        '</section>' +
+        '<section class="section hero-intro"><div class="container intro-grid">' +
+        '<div class="hero-content">' +
+        (t(d.eyebrow) ? '<span class="eyebrow" data-reveal>' + te(d.eyebrow) + '</span>' : '') +
+        '<h1 class="hero-title" data-reveal>' + esc(t(d.title)) + (hl ? '<span class="accent">' + esc(hl) + '</span>' : '') + '</h1>' +
+        (t(d.subtitle) ? '<p class="hero-sub" data-reveal>' + te(d.subtitle) + '</p>' : '') +
+        (btns ? '<div class="hero-actions" data-reveal>' + btns + '</div>' : '') +
+        (badges ? '<ul class="hero-badges" data-reveal>' + badges + '</ul>' : '') +
+        '</div>' +
+        (S.imgSrc(S.settings.logoFull) ? '<div class="intro-logo" data-reveal><img src="' + esc(S.imgSrc(S.settings.logoFull)) + '" alt="' + te(S.settings.siteName) + '" loading="lazy" decoding="async"></div>' : '') +
+        '</div></section>';
     },
 
     about: function (s, idx) {
@@ -134,42 +137,6 @@
           '</div><span class="project-link">' + esc(S.T.viewProject) + S.arrow() + '</span></div></a>';
       }).join('');
       return open(s, 'projects') + head(d, idx) + filters + '<div class="projects-grid">' + cards + '</div>' + close;
-    },
-
-    stats: function (s, idx) {
-      var d = s.data || {};
-      var items = (d.items || []).map(function (it) {
-        var v = parseFloat(it.value) || 0;
-        var dec = S.decimalsOf(it.value);
-        var suffix = t(it.suffix);
-        return '<div class="stat" data-reveal><div class="stat-value">' +
-          '<span class="stat-num" data-count="' + v + '" data-dec="' + dec + '">' + S.fmt(v, dec) + '</span>' +
-          (suffix ? '<span class="stat-suffix">' + esc(suffix) + '</span>' : '') +
-          '</div><div class="stat-label">' + te(it.label) + '</div></div>';
-      }).join('');
-      return open(s, 'stats') + head(d, idx) + '<div class="stats-grid">' + items + '</div>' + close;
-    },
-
-    testimonials: function (s, idx) {
-      var d = s.data || {};
-      var cards = (d.items || []).map(function (it) {
-        var rating = Math.max(0, Math.min(5, parseInt(it.rating, 10) || 0));
-        var stars = '';
-        for (var i = 1; i <= 5; i++) stars += icon('star', i > rating ? 'off' : '');
-        var av = S.imgSrc(it.avatar);
-        return '<figure class="t-card">' +
-          '<div class="t-quote">' + icon('quote', 'flip') + '</div>' +
-          '<blockquote class="t-text">' + te(it.text) + '</blockquote>' +
-          (rating ? '<div class="t-stars" role="img" aria-label="' + esc(S.T.rating.replace('{n}', rating)) + '">' + stars + '</div>' : '') +
-          '<figcaption class="t-person"><span class="t-avatar">' +
-          (av ? '<img src="' + esc(av) + '" alt="" loading="lazy" decoding="async">' : S.initials(t(it.name))) +
-          '</span><span><b>' + te(it.name) + '</b><small>' + te(it.role) + '</small></span></figcaption></figure>';
-      }).join('');
-      return open(s, 'testimonials') + head(d, idx) +
-        '<div class="t-wrap" data-reveal><div class="t-track" tabindex="0" aria-label="' + esc(S.T.testimonials) + '">' + cards + '</div>' +
-        '<div class="t-controls"><button class="t-btn" type="button" data-dir="prev" aria-label="' + esc(S.T.prev) + '">' + S.arrow('prev') + '</button>' +
-        '<button class="t-btn" type="button" data-dir="next" aria-label="' + esc(S.T.next) + '">' + S.arrow() + '</button>' +
-        '<div class="t-dots"></div></div></div>' + close;
     },
 
     contact: function (s, idx) {
@@ -297,87 +264,6 @@
     });
   }
 
-  /* ---------------- آراء العملاء ---------------- */
-  function initTestimonials() {
-    var wrap = $('.t-wrap');
-    if (!wrap) return;
-    var track = $('.t-track', wrap);
-    var dotsEl = $('.t-dots', wrap);
-    var controls = $('.t-controls', wrap);
-    var cards = $$('.t-card', track);
-    if (!cards.length) { controls.hidden = true; return; }
-    var sign = document.documentElement.dir === 'rtl' ? -1 : 1;
-
-    function step() { return cards[0].getBoundingClientRect().width + (parseFloat(getComputedStyle(track).columnGap) || 0); }
-    function pages() { return Math.max(1, cards.length - Math.round(track.clientWidth / step()) + 1); }
-    function current() { return Math.round(Math.abs(track.scrollLeft) / step()); }
-    function go(i) {
-      var n = pages();
-      i = (i + n) % n;
-      track.scrollTo({ left: sign * i * step(), behavior: S.reduceMotion ? 'auto' : 'smooth' });
-    }
-    function buildDots() {
-      var n = pages();
-      controls.hidden = n <= 1;
-      dotsEl.innerHTML = Array.from({ length: n }, function (_, i) {
-        return '<button type="button" aria-label="' + esc(S.T.slide) + ' ' + (i + 1) + '"></button>';
-      }).join('');
-      syncDots();
-    }
-    function syncDots() {
-      var c = current();
-      $$('button', dotsEl).forEach(function (b, i) { b.classList.toggle('is-active', i === c); });
-    }
-    wrap.addEventListener('click', function (e) {
-      var b = e.target.closest('.t-btn');
-      if (b) { go(current() + (b.getAttribute('data-dir') === 'next' ? 1 : -1)); restart(); return; }
-      var dot = e.target.closest('.t-dots button');
-      if (dot) { go($$('button', dotsEl).indexOf(dot)); restart(); }
-    });
-    var st;
-    track.addEventListener('scroll', function () { clearTimeout(st); st = setTimeout(syncDots, 80); }, { passive: true });
-    var rt;
-    window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(buildDots, 150); });
-    buildDots();
-
-    var timer = null, paused = false;
-    function restart() {
-      clearInterval(timer);
-      if (S.reduceMotion) return;
-      timer = setInterval(function () { if (!paused && !document.hidden) go(current() + 1); }, 6000);
-    }
-    ['mouseenter', 'focusin', 'touchstart'].forEach(function (ev) { wrap.addEventListener(ev, function () { paused = true; }, { passive: true }); });
-    ['mouseleave', 'focusout'].forEach(function (ev) { wrap.addEventListener(ev, function () { paused = false; }); });
-    restart();
-  }
-
-  /* ---------------- العدادات ---------------- */
-  function initCounters() {
-    var nums = $$('.stat-num');
-    if (!nums.length || S.reduceMotion || !('IntersectionObserver' in window)) return;
-    function run(el) {
-      var target = parseFloat(el.getAttribute('data-count')) || 0;
-      var dec = +el.getAttribute('data-dec') || 0;
-      var t0 = null;
-      function frame(now) {
-        if (t0 === null) t0 = now;
-        var k = Math.min(1, (now - t0) / 2200);
-        el.textContent = S.fmt(target * (1 - Math.pow(1 - k, 4)), dec);
-        if (k < 1) requestAnimationFrame(frame);
-      }
-      requestAnimationFrame(frame);
-    }
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (en.isIntersecting) { io.unobserve(en.target); run(en.target); }
-      });
-    }, { threshold: 0.6 });
-    nums.forEach(function (el) {
-      el.textContent = S.fmt(0, +el.getAttribute('data-dec') || 0);
-      io.observe(el);
-    });
-  }
-
   /* ---------------- مشهد البناء ---------------- */
   var hud = {};
   function updateHud(p) {
@@ -418,7 +304,7 @@
     ScrollTrigger.create({
       trigger: '.hero',
       start: 'top top',
-      end: function () { return '+=' + Math.round(window.innerHeight * 3.2); },
+      end: function () { return '+=' + Math.round(window.innerHeight * 5); },
       pin: true,
       scrub: 1,
       animation: tl,
@@ -438,14 +324,6 @@
     gsap.registerPlugin(ScrollTrigger);
     ScrollTrigger.config({ ignoreMobileResize: true });
 
-    var intro = gsap.timeline({ delay: 0.25, defaults: { ease: 'power3.out' } });
-    var eyebrow = $$('.hero .eyebrow');
-    var wordsEl = $$('.hero-title .word');
-    var rest = $('.hero-sub, .hero-actions, .hero-badges');
-    if (eyebrow.length) intro.from(eyebrow, { y: 20, autoAlpha: 0, duration: 0.6 });
-    if (wordsEl.length) intro.from(wordsEl, { yPercent: 60, autoAlpha: 0, duration: 0.9, stagger: 0.07 }, '-=0.3');
-    if (rest.length) intro.from(rest, { y: 26, autoAlpha: 0, duration: 0.8, stagger: 0.12 }, '-=0.55');
-
     initScene();
 
     var reveals = $$('.section [data-reveal]');
@@ -462,10 +340,6 @@
     $$('.about-media img').forEach(function (img) {
       gsap.fromTo(img, { yPercent: -6, scale: 1.14 }, { yPercent: 6, scale: 1.14, ease: 'none', scrollTrigger: { trigger: img.parentNode, start: 'top bottom', end: 'bottom top', scrub: true } });
     });
-    $$('.stats').forEach(function (sec) {
-      gsap.fromTo(sec, { '--stripe-y': '0px' }, { '--stripe-y': '-160px', ease: 'none', scrollTrigger: { trigger: sec, scrub: true } });
-    });
-
     var refresh = function () { ScrollTrigger.refresh(); };
     window.addEventListener('load', refresh);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(refresh);
@@ -491,8 +365,6 @@
     after: function () {
       initSectors();
       initProjects();
-      initTestimonials();
-      initCounters();
       if (hasGsap()) initGsap();
       else {
         initScene();

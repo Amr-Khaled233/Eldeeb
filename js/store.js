@@ -1,30 +1,28 @@
 /**
  * ContentStore: طبقة البيانات الوحيدة التي يتعامل معها الموقع ولوحة التحكم.
  * ------------------------------------------------------------------
- * كل القراءة والكتابة تمر من هنا عبر "Adapter".
- * لإضافة باك إند حقيقي لاحقًا (Vercel + Upstash Redis / Supabase ...):
- *   1) نفّذ endpoints: GET/PUT /api/content  (انظر docs/api-example)
- *   2) غيّر dataSource إلى 'api' في js/config.js
- * بدون أي تعديل في script.js أو admin.js.
+ * dataSource = 'auto' (الافتراضي):
+ *   - على Vercel مع قاعدة بيانات مربوطة: القراءة والحفظ من /api (Upstash Redis + Vercel Blob)
+ *   - بدون API (تشغيل محلي بـ npx serve): data.json + حفظ في المتصفح
  */
 (function (global) {
   'use strict';
 
   var cfg = Object.assign(
-    { dataSource: 'local', dataUrl: 'data.json', apiBase: '/api', storagePrefix: 'bc' },
+    { dataSource: 'auto', dataUrl: 'data.json', apiBase: '/api', storagePrefix: 'bc' },
     global.APP_CONFIG || {}
   );
 
   var KEYS = {
     published: cfg.storagePrefix + ':content:published',
     draft: cfg.storagePrefix + ':content:draft',
-    token: cfg.storagePrefix + ':api:token'
+    token: cfg.storagePrefix + ':api:token',
+    localSession: cfg.storagePrefix + ':admin:session'
   };
 
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
   function isObj(v) { return v && typeof v === 'object' && !Array.isArray(v); }
 
-  // هوية عنصر في قائمة (لمطابقة العنصر المحفوظ مع الافتراضي وإضافة الحقول الجديدة له)
   function identity(o) {
     var v = o.slug || o.id || o.title || o.name || o.text || o.label;
     return v == null ? null : JSON.stringify(isObj(v) ? v.ar : v);
@@ -38,7 +36,6 @@
       return item;
     });
   }
-  // دمج عميق: الكائنات تُدمج، والمصفوفات تُستبدل بالمحفوظة (مع إكمال الحقول الناقصة للعناصر المطابقة)
   function deepMerge(base, over) {
     if (!isObj(base) || !isObj(over)) return over === undefined ? base : over;
     Object.keys(over).forEach(function (k) {
@@ -49,21 +46,22 @@
     return base;
   }
 
-  /** يضمن أن المحتوى المحفوظ قديمًا يحتوي على أي حقول/أقسام جديدة أُضيفت في data.json */
+  /** يكمل المحتوى المحفوظ بأي حقول جديدة، ويتجاهل الأقسام التي لم تعد موجودة */
   function normalize(data, defaults) {
     if (!data || !Array.isArray(data.sections)) return clone(defaults);
     var out = clone(data);
     out.settings = deepMerge(clone(defaults.settings), out.settings || {});
+    out.sections = out.sections.filter(function (s) {
+      return defaults.sections.some(function (x) { return x.id === s.id; });
+    });
     var ids = {};
     out.sections.forEach(function (s) { ids[s.id] = true; });
-    // الأقسام الجديدة تُضاف في مكانها الافتراضي
     defaults.sections.forEach(function (s, i) {
       if (!ids[s.id]) out.sections.splice(Math.min(i, out.sections.length), 0, clone(s));
     });
     out.version = defaults.version;
     out.sections = out.sections.map(function (s) {
       var d = defaults.sections.filter(function (x) { return x.id === s.id; })[0];
-      if (!d) return s;
       var merged = Object.assign(clone(d), s);
       merged.data = deepMerge(clone(d.data || {}), s.data || {});
       return merged;
@@ -81,8 +79,12 @@
     get: function (k) {
       try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; }
     },
-    set: function (k, v) { localStorage.setItem(k, JSON.stringify(v)); }, // قد يرمي QuotaExceededError
-    del: function (k) { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } }
+    set: function (k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+  };
+  var ss = {
+    get: function (k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { sessionStorage.setItem(k, v); } catch (e) { /* ignore */ } },
+    del: function (k) { try { sessionStorage.removeItem(k); } catch (e) { /* ignore */ } }
   };
 
   var defaultsPromise = null;
@@ -97,12 +99,55 @@
     return defaultsPromise;
   }
 
-  /* ---------------- Adapter: localStorage ---------------- */
+  function isJson(r) { return (r.headers.get('content-type') || '').indexOf('json') >= 0; }
+
+  /* ---------------- اكتشاف الوضع ---------------- */
+  var OFF = { mode: 'local', api: false, db: false, blob: false, auth: false };
+  var statusPromise = null;
+  function status() {
+    if (cfg.dataSource === 'local') return Promise.resolve(OFF);
+    if (!statusPromise) {
+      statusPromise = fetch(cfg.apiBase + '/health', { cache: 'no-store' }).then(function (r) {
+        return r.ok && isJson(r) ? r.json() : null;
+      }).then(function (j) {
+        if (!j || !j.ok) return OFF;
+        return { mode: j.db ? 'api' : 'local', api: true, db: !!j.db, blob: !!j.blob, auth: !!j.auth };
+      }).catch(function () { return OFF; });
+    }
+    return statusPromise;
+  }
+
+  /* ---------------- التوكن ---------------- */
+  function token() { return ss.get(KEYS.token); }
+  function tokenValid() {
+    var t = token();
+    return !!t && +String(t).split('.')[0] > Date.now();
+  }
+  function headers() {
+    var h = { 'Content-Type': 'application/json', Accept: 'application/json' };
+    if (token()) h.Authorization = 'Bearer ' + token();
+    return h;
+  }
+  function api(method, path, body) {
+    return fetch(cfg.apiBase + path, {
+      method: method, headers: headers(), body: body ? JSON.stringify(body) : undefined, cache: 'no-store'
+    }).then(function (r) {
+      return (isJson(r) ? r.json() : Promise.resolve({})).then(function (j) {
+        if (!r.ok) {
+          var err = new Error((j && j.error) || ('HTTP ' + r.status));
+          err.status = r.status;
+          throw err;
+        }
+        return j;
+      });
+    });
+  }
+
+  /* ---------------- Adapters ---------------- */
   var LocalAdapter = {
     load: function (opts) {
-      opts = opts || {};
       return fetchDefaults().then(function (defaults) {
-        var stored = (opts.draft && ls.get(KEYS.draft)) || ls.get(KEYS.published);
+        var stored = (opts && opts.draft && ls.get(KEYS.draft)) || ls.get(KEYS.published);
         return stored ? normalize(stored, defaults) : clone(defaults);
       });
     },
@@ -112,53 +157,93 @@
       ls.set(KEYS.published, d);
       ls.set(KEYS.draft, d);
       return Promise.resolve(d);
-    },
-    reset: function () { ls.del(KEYS.published); ls.del(KEYS.draft); return Promise.resolve(); }
+    }
   };
 
-  /* ---------------- Adapter: REST API ---------------- */
-  function apiHeaders() {
-    var h = { 'Content-Type': 'application/json', Accept: 'application/json' };
-    var t = null;
-    try { t = sessionStorage.getItem(KEYS.token); } catch (e) { /* ignore */ }
-    if (t) h.Authorization = 'Bearer ' + t;
-    return h;
-  }
-  function apiSend(method, path, body) {
-    return fetch(cfg.apiBase + path, {
-      method: method, headers: apiHeaders(), body: body ? JSON.stringify(body) : undefined
-    }).then(function (r) {
-      if (!r.ok) throw new Error('API ' + method + ' ' + path + ' → ' + r.status);
-      return r.status === 204 ? null : r.json();
-    });
-  }
   var ApiAdapter = {
     load: function (opts) {
-      opts = opts || {};
+      var draft = opts && opts.draft;
       return Promise.all([
         fetchDefaults(),
-        apiSend('GET', '/content' + (opts.draft ? '?draft=1' : '')).catch(function (e) {
-          console.warn('[ContentStore] API غير متاح، سيتم استخدام data.json', e);
-          return null;
-        })
+        api('GET', '/content' + (draft ? '?draft=1' : '')).catch(function () { return null; })
       ]).then(function (res) { return res[1] ? normalize(res[1], res[0]) : clone(res[0]); });
     },
-    saveDraft: function (data) { return apiSend('PUT', '/content?draft=1', stamp(data)); },
-    publish: function (data) { var d = stamp(data); return apiSend('PUT', '/content', d).then(function () { return d; }); },
-    reset: function () { return apiSend('DELETE', '/content'); }
+    saveDraft: function (data) { return api('PUT', '/content?draft=1', stamp(data)); },
+    publish: function (data) {
+      var d = stamp(data);
+      return api('PUT', '/content', d).then(function () { return d; });
+    }
   };
 
-  var adapter = cfg.dataSource === 'api' ? ApiAdapter : LocalAdapter;
+  function adapter() {
+    return status().then(function (s) { return s.mode === 'api' ? ApiAdapter : LocalAdapter; });
+  }
+
+  /** الموقع العام: يقرأ من الـ API مباشرة (بدون طلب إضافي)، وإلا data.json + المتصفح */
+  function loadPublic() {
+    if (cfg.dataSource === 'local') return LocalAdapter.load({});
+    return Promise.all([
+      fetchDefaults(),
+      fetch(cfg.apiBase + '/content', { headers: { Accept: 'application/json' } }).then(function (r) {
+        if (!isJson(r)) return null;
+        if (r.ok) return r.json().then(function (d) { return { data: d }; });
+        return { api: true };
+      }).catch(function () { return null; })
+    ]).then(function (res) {
+      if (res[1] && res[1].data) return normalize(res[1].data, res[0]);
+      if (res[1] && res[1].api) return clone(res[0]);
+      return LocalAdapter.load({});
+    });
+  }
+
+  function sha256(text) {
+    if (!global.crypto || !crypto.subtle) return Promise.reject(new Error('insecure_context'));
+    return crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)).then(function (buf) {
+      return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+    });
+  }
 
   global.ContentStore = {
     config: cfg,
     keys: KEYS,
-    load: function (opts) { return adapter.load(opts); },
-    loadDefaults: function () { return fetchDefaults().then(clone); },
-    saveDraft: function (data) { return adapter.saveDraft(data); },
-    publish: function (data) { return adapter.publish(data); },
-    reset: function () { return adapter.reset(); },
-    normalize: function (data) { return fetchDefaults().then(function (d) { return normalize(data, d); }); },
-    setApiToken: function (t) { try { sessionStorage.setItem(KEYS.token, t); } catch (e) { /* ignore */ } }
+    status: status,
+    load: function (opts) {
+      return opts && opts.draft ? adapter().then(function (a) { return a.load(opts); }) : loadPublic();
+    },
+    loadPublished: function () { return adapter().then(function (a) { return a.load({}); }); },
+    saveDraft: function (data) { return adapter().then(function (a) { return a.saveDraft(data); }); },
+    publish: function (data) { return adapter().then(function (a) { return a.publish(data); }); },
+
+    /** الدخول: على Vercel بكلمة المرور ADMIN_PASSWORD، ومحليًا بكلمة المرور في config.js */
+    login: function (password) {
+      return status().then(function (s) {
+        if (s.api) {
+          if (!s.auth) return { ok: false, reason: 'password_not_configured' };
+          return api('POST', '/login', { password: password }).then(function (j) {
+            ss.set(KEYS.token, j.token);
+            return { ok: true };
+          }).catch(function (e) {
+            return { ok: false, reason: e.status === 401 ? 'wrong_password' : 'server_error' };
+          });
+        }
+        return sha256(password).then(function (h) {
+          if (h !== cfg.adminPasswordHash) return { ok: false, reason: 'wrong_password' };
+          ss.set(KEYS.localSession, '1');
+          return { ok: true };
+        }, function () { return { ok: false, reason: 'insecure_context' }; });
+      });
+    },
+    isLoggedIn: function () {
+      return status().then(function (s) { return s.api ? tokenValid() : ss.get(KEYS.localSession) === '1'; });
+    },
+    logout: function () { ss.del(KEYS.token); ss.del(KEYS.localSession); },
+
+    /** رفع صورة إلى Vercel Blob لو متاح، وإلا تبقى داخل المحتوى */
+    uploadImage: function (dataUrl, name) {
+      return status().then(function (s) {
+        if (s.mode !== 'api' || !s.blob) return dataUrl;
+        return api('POST', '/upload', { dataUrl: dataUrl, name: name }).then(function (j) { return j.url; });
+      });
+    }
   };
 })(window);
