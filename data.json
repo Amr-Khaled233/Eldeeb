@@ -1,0 +1,1342 @@
+{
+  "version": 3,
+  "settings": {
+    "siteName": {
+      "ar": "الديب للمقاولات والاستشارات الهندسية",
+      "en": "El Deeb Construction & Engineering"
+    },
+    "logoText": {
+      "ar": "الديب",
+      "en": "EL DEEB"
+    },
+    "logoSubtext": {
+      "ar": "للمقاولات والاستشارات الهندسية",
+      "en": "Construction & Engineering"
+    },
+    "logoImage": "assets/images/logo-mark.webp",
+    "logoFull": "assets/images/logo-full.webp",
+    "tagline": {
+      "ar": "قوة هندسية تبني الثقة. نصمم وننفذ مشاريع تدوم لأجيال، من أول حجر في الأساس حتى تسليم المفتاح.",
+      "en": "Engineering strength. Building trust. We design and deliver projects that last for generations."
+    },
+    "defaultLang": "ar",
+    "showLangSwitch": true,
+    "defaultTheme": "dark",
+    "showThemeSwitch": true,
+    "numerals": "latin",
+    "fonts": {
+      "ar": "IBM Plex Sans Arabic",
+      "en": "Montserrat"
+    },
+    "colors": {
+      "primary": "#C89D2A",
+      "dark": {
+        "background": "#0D1B2A",
+        "surface": "#132536",
+        "text": "#E2E6EA",
+        "muted": "#8D959E"
+      },
+      "light": {
+        "background": "#F3F5F7",
+        "surface": "#FFFFFF",
+        "text": "#0D1B2A",
+        "muted": "#5B636D"
+      }
+    },
+    "contact": {
+      "phone": "+20 100 000 0000",
+      "whatsapp": "201000000000",
+      "email": "info@eldeebce.com",
+      "address": {
+        "ar": "التجمع الخامس، القاهرة الجديدة، مصر",
+        "en": "Fifth Settlement, New Cairo, Egypt"
+      },
+      "hours": {
+        "ar": "من السبت إلى الخميس، 9 صباحًا حتى 6 مساءً",
+        "en": "Saturday to Thursday, 9 AM to 6 PM"
+      },
+      "mapEmbed": ""
+    },
+    "social": {
+      "facebook": "#",
+      "instagram": "#",
+      "linkedin": "#",
+      "x": "",
+      "youtube": ""
+    },
+    "seo": {
+      "title": {
+        "ar": "الديب للمقاولات والاستشارات الهندسية | قوة هندسية تبني الثقة",
+        "en": "El Deeb Construction & Engineering | Engineering Strength. Building Trust."
+      },
+      "description": {
+        "ar": "شركة مقاولات وهندسة معمارية متكاملة: تصميم معماري وإنشائي، تنفيذ مبانٍ سكنية وتجارية، تشطيبات وإدارة مشاريع بجودة والتزام.",
+        "en": "A full-service contracting and architecture firm: architectural and structural design, residential and commercial construction, finishing and project management."
+      }
+    },
+    "footerText": {
+      "ar": "جميع الحقوق محفوظة.",
+      "en": "All rights reserved."
+    }
+  },
+  "sections": [
+    {
+      "id": "hero",
+      "type": "hero",
+      "label": {
+        "ar": "الرئيسية",
+        "en": "Home"
+      },
+      "visible": true,
+      "data": {
+        "eyebrow": {
+          "ar": "مقاولات • تصميم معماري • إدارة مشاريع",
+          "en": "Contracting • Architecture • Project Management"
+        },
+        "title": {
+          "ar": "نبني رؤيتك",
+          "en": "We build your vision"
+        },
+        "highlight": {
+          "ar": "طابقًا فوق طابق",
+          "en": "floor by floor"
+        },
+        "subtitle": {
+          "ar": "من دراسة الموقع والتصميم إلى التنفيذ والتسليم، فريق هندسي واحد يرافقك في كل مرحلة بدقة وشفافية والتزام كامل بالجدول الزمني.",
+          "en": "From site study and design to construction and handover, one engineering team is with you at every stage, with precision, transparency and a firm commitment to schedule."
+        },
+        "buttons": [
+          {
+            "label": {
+              "ar": "ابدأ مشروعك",
+              "en": "Start your project"
+            },
+            "href": "#contact",
+            "style": "primary"
+          },
+          {
+            "label": {
+              "ar": "شاهد أعمالنا",
+              "en": "View our work"
+            },
+            "href": "#projects",
+            "style": "ghost"
+          }
+        ],
+        "badges": [
+          {
+            "text": {
+              "ar": "ترخيص درجة أولى",
+              "en": "First-grade license"
+            }
+          },
+          {
+            "text": {
+              "ar": "ISO 9001",
+              "en": "ISO 9001"
+            }
+          },
+          {
+            "text": {
+              "ar": "ضمان 10 سنوات على الهيكل",
+              "en": "10-year structural warranty"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "about",
+      "type": "about",
+      "label": {
+        "ar": "من نحن",
+        "en": "About"
+      },
+      "visible": true,
+      "data": {
+        "eyebrow": {
+          "ar": "الأساسات",
+          "en": "Foundations"
+        },
+        "title": {
+          "ar": "خبرة هندسية تبدأ من الأساس",
+          "en": "Engineering expertise from the ground up"
+        },
+        "text": {
+          "ar": "منذ أكثر من 18 عامًا ونحن نحوّل المخططات إلى مبانٍ قائمة. نجمع بين التصميم المعماري المبتكر والتنفيذ الإنشائي المنضبط، مع فريق يضم أكثر من 120 مهندسًا وفنيًا متخصصًا.\n\nنؤمن أن الجودة ليست مرحلة أخيرة، بل تبدأ من أول اختبار للتربة وتستمر حتى آخر لمسة في التشطيب.",
+          "en": "For more than 18 years we have been turning drawings into standing buildings. We combine innovative architectural design with disciplined structural execution, backed by a team of 120+ engineers and specialists.\n\nWe believe quality is not a final step. It starts with the first soil test and continues to the last finishing touch."
+        },
+        "image": "assets/images/about.svg",
+        "experienceValue": "18+",
+        "experienceLabel": {
+          "ar": "عامًا من الخبرة",
+          "en": "years of experience"
+        },
+        "features": [
+          {
+            "text": {
+              "ar": "فريق هندسي معتمد في كل التخصصات",
+              "en": "Certified engineers across all disciplines"
+            }
+          },
+          {
+            "text": {
+              "ar": "إشراف يومي وتقارير تقدم أسبوعية",
+              "en": "Daily supervision and weekly progress reports"
+            }
+          },
+          {
+            "text": {
+              "ar": "مواد بناء مطابقة للمواصفات القياسية",
+              "en": "Materials that meet standard specifications"
+            }
+          },
+          {
+            "text": {
+              "ar": "التزام صارم بمعايير السلامة المهنية",
+              "en": "Strict occupational safety standards"
+            }
+          }
+        ],
+        "button": {
+          "label": {
+            "ar": "تواصل مع فريقنا",
+            "en": "Talk to our team"
+          },
+          "href": "#contact"
+        }
+      }
+    },
+    {
+      "id": "sectors",
+      "type": "sectors",
+      "label": {
+        "ar": "مجالات عملنا",
+        "en": "Sectors"
+      },
+      "visible": true,
+      "data": {
+        "eyebrow": {
+          "ar": "الأعمدة",
+          "en": "Columns"
+        },
+        "title": {
+          "ar": "القطاعات التي نعمل بها",
+          "en": "The sectors we work in"
+        },
+        "subtitle": {
+          "ar": "خبرة عملية في مجالات متعددة، وهذه أمثلة لما نقدمه في كل مجال.",
+          "en": "Hands-on experience across many sectors. Here are examples of what we deliver in each one."
+        },
+        "items": [
+          {
+            "id": "residential",
+            "icon": "home",
+            "title": {
+              "ar": "سكني",
+              "en": "Residential"
+            },
+            "text": {
+              "ar": "نبني بيوتًا مريحة وآمنة، من الفيلا الخاصة حتى المجمعات السكنية المتكاملة.",
+              "en": "Comfortable, safe homes, from private villas to complete residential communities."
+            },
+            "image": "assets/images/projects/villa.svg",
+            "examples": [
+              {
+                "text": {
+                  "ar": "فيلات وقصور خاصة",
+                  "en": "Private villas and palaces"
+                }
+              },
+              {
+                "text": {
+                  "ar": "عمارات سكنية متعددة الطوابق",
+                  "en": "Multi-storey apartment buildings"
+                }
+              },
+              {
+                "text": {
+                  "ar": "كمبوندات ومجمعات سكنية",
+                  "en": "Gated compounds and communities"
+                }
+              },
+              {
+                "text": {
+                  "ar": "توسعة وترميم المنازل",
+                  "en": "Home extensions and renovation"
+                }
+              }
+            ]
+          },
+          {
+            "id": "commercial",
+            "icon": "building",
+            "title": {
+              "ar": "تجاري وإداري",
+              "en": "Commercial & Offices"
+            },
+            "text": {
+              "ar": "مساحات عمل وتسوق مصممة لجذب العملاء ورفع كفاءة التشغيل.",
+              "en": "Workspaces and retail spaces designed to attract customers and run efficiently."
+            },
+            "image": "assets/images/projects/tower.svg",
+            "examples": [
+              {
+                "text": {
+                  "ar": "أبراج ومبانٍ إدارية",
+                  "en": "Office towers and buildings"
+                }
+              },
+              {
+                "text": {
+                  "ar": "مولات ومراكز تجارية",
+                  "en": "Malls and shopping centers"
+                }
+              },
+              {
+                "text": {
+                  "ar": "فنادق ومطاعم",
+                  "en": "Hotels and restaurants"
+                }
+              },
+              {
+                "text": {
+                  "ar": "معارض ومحلات تجارية",
+                  "en": "Showrooms and retail stores"
+                }
+              }
+            ]
+          },
+          {
+            "id": "healthcare",
+            "icon": "shield",
+            "title": {
+              "ar": "طبي وتعليمي",
+              "en": "Healthcare & Education"
+            },
+            "text": {
+              "ar": "منشآت تخضع لأدق المعايير الفنية واشتراطات السلامة.",
+              "en": "Facilities built to the strictest technical and safety requirements."
+            },
+            "image": "assets/images/projects/hospital.svg",
+            "examples": [
+              {
+                "text": {
+                  "ar": "مستشفيات وعيادات",
+                  "en": "Hospitals and clinics"
+                }
+              },
+              {
+                "text": {
+                  "ar": "مدارس وجامعات",
+                  "en": "Schools and universities"
+                }
+              },
+              {
+                "text": {
+                  "ar": "معامل ومختبرات",
+                  "en": "Laboratories"
+                }
+              },
+              {
+                "text": {
+                  "ar": "مراكز تأهيل ورعاية",
+                  "en": "Rehabilitation and care centers"
+                }
+              }
+            ]
+          },
+          {
+            "id": "industrial",
+            "icon": "factory",
+            "title": {
+              "ar": "صناعي ولوجستي",
+              "en": "Industrial & Logistics"
+            },
+            "text": {
+              "ar": "مبانٍ صناعية بهياكل معدنية وخرسانية تتحمل التشغيل الشاق.",
+              "en": "Industrial buildings with steel and concrete structures built for heavy operation."
+            },
+            "image": "assets/images/gallery/site-work.svg",
+            "examples": [
+              {
+                "text": {
+                  "ar": "مصانع وورش إنتاج",
+                  "en": "Factories and workshops"
+                }
+              },
+              {
+                "text": {
+                  "ar": "مخازن ومستودعات",
+                  "en": "Warehouses and storage"
+                }
+              },
+              {
+                "text": {
+                  "ar": "هناجر بهياكل معدنية",
+                  "en": "Steel-frame hangars"
+                }
+              },
+              {
+                "text": {
+                  "ar": "محطات وقود وخدمات",
+                  "en": "Fuel and service stations"
+                }
+              }
+            ]
+          },
+          {
+            "id": "infrastructure",
+            "icon": "road",
+            "title": {
+              "ar": "بنية تحتية",
+              "en": "Infrastructure"
+            },
+            "text": {
+              "ar": "مشروعات تخدم المدن وتربط المجتمعات.",
+              "en": "Projects that serve cities and connect communities."
+            },
+            "image": "assets/images/projects/bridge.svg",
+            "examples": [
+              {
+                "text": {
+                  "ar": "طرق وكباري",
+                  "en": "Roads and bridges"
+                }
+              },
+              {
+                "text": {
+                  "ar": "شبكات مياه وصرف",
+                  "en": "Water and drainage networks"
+                }
+              },
+              {
+                "text": {
+                  "ar": "أعمال الإنارة والكهرباء",
+                  "en": "Lighting and electrical works"
+                }
+              },
+              {
+                "text": {
+                  "ar": "تنسيق المواقع العامة",
+                  "en": "Public landscaping"
+                }
+              }
+            ]
+          },
+          {
+            "id": "interiors",
+            "icon": "interior",
+            "title": {
+              "ar": "تصميم داخلي وتشطيبات",
+              "en": "Interiors & Finishing"
+            },
+            "text": {
+              "ar": "نحوّل المساحات الخام إلى أماكن جاهزة للحياة والعمل.",
+              "en": "We turn bare shells into spaces ready for living and working."
+            },
+            "image": "assets/images/projects/interior.svg",
+            "examples": [
+              {
+                "text": {
+                  "ar": "تشطيب شقق وفيلات",
+                  "en": "Apartment and villa finishing"
+                }
+              },
+              {
+                "text": {
+                  "ar": "تجهيز مكاتب وشركات",
+                  "en": "Office fit-outs"
+                }
+              },
+              {
+                "text": {
+                  "ar": "ديكورات المحلات والمطاعم",
+                  "en": "Shop and restaurant interiors"
+                }
+              },
+              {
+                "text": {
+                  "ar": "أعمال الجبس والإضاءة والأرضيات",
+                  "en": "Ceilings, lighting and flooring works"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "services",
+      "type": "services",
+      "label": {
+        "ar": "خدماتنا",
+        "en": "Services"
+      },
+      "visible": true,
+      "data": {
+        "eyebrow": {
+          "ar": "الهيكل الإنشائي",
+          "en": "Structure"
+        },
+        "title": {
+          "ar": "خدمات متكاملة تحت سقف واحد",
+          "en": "Integrated services under one roof"
+        },
+        "subtitle": {
+          "ar": "كل ما يحتاجه مشروعك من الفكرة حتى التشغيل.",
+          "en": "Everything your project needs, from concept to operation."
+        },
+        "items": [
+          {
+            "icon": "blueprint",
+            "title": {
+              "ar": "التصميم المعماري",
+              "en": "Architectural Design"
+            },
+            "text": {
+              "ar": "تصميمات مبتكرة ووظيفية تراعي الهوية والميزانية ومتطلبات الترخيص.",
+              "en": "Innovative, functional designs that respect identity, budget and permit requirements."
+            },
+            "points": [
+              {
+                "text": {
+                  "ar": "مخططات ثنائية وثلاثية الأبعاد",
+                  "en": "2D and 3D drawings"
+                }
+              },
+              {
+                "text": {
+                  "ar": "استخراج التراخيص",
+                  "en": "Building permits"
+                }
+              }
+            ]
+          },
+          {
+            "icon": "building",
+            "title": {
+              "ar": "التنفيذ والمقاولات العامة",
+              "en": "General Contracting"
+            },
+            "text": {
+              "ar": "تنفيذ المباني السكنية والتجارية والإدارية بأعلى معايير الجودة.",
+              "en": "Residential, commercial and office buildings delivered to the highest quality standards."
+            },
+            "points": [
+              {
+                "text": {
+                  "ar": "أعمال الحفر والخرسانة",
+                  "en": "Excavation and concrete works"
+                }
+              },
+              {
+                "text": {
+                  "ar": "المباني والعزل",
+                  "en": "Masonry and insulation"
+                }
+              }
+            ]
+          },
+          {
+            "icon": "ruler",
+            "title": {
+              "ar": "التصميم الإنشائي",
+              "en": "Structural Design"
+            },
+            "text": {
+              "ar": "حسابات إنشائية دقيقة وحلول آمنة واقتصادية لكل أنواع المنشآت.",
+              "en": "Accurate structural analysis with safe, cost-effective solutions for every building type."
+            },
+            "points": [
+              {
+                "text": {
+                  "ar": "دراسات التربة",
+                  "en": "Soil investigations"
+                }
+              },
+              {
+                "text": {
+                  "ar": "تدعيم المباني القائمة",
+                  "en": "Strengthening existing buildings"
+                }
+              }
+            ]
+          },
+          {
+            "icon": "interior",
+            "title": {
+              "ar": "التصميم الداخلي والتشطيبات",
+              "en": "Interiors & Finishing"
+            },
+            "text": {
+              "ar": "مساحات داخلية أنيقة وتشطيبات فاخرة بتفاصيل مدروسة.",
+              "en": "Elegant interior spaces and premium finishes with carefully considered details."
+            },
+            "points": [
+              {
+                "text": {
+                  "ar": "تصميم الإضاءة والأثاث",
+                  "en": "Lighting and furniture design"
+                }
+              },
+              {
+                "text": {
+                  "ar": "تشطيب كامل على المفتاح",
+                  "en": "Full turnkey finishing"
+                }
+              }
+            ]
+          },
+          {
+            "icon": "helmet",
+            "title": {
+              "ar": "إدارة المشاريع",
+              "en": "Project Management"
+            },
+            "text": {
+              "ar": "تخطيط ومتابعة وضبط للتكلفة والجدول الزمني من البداية للنهاية.",
+              "en": "Planning, monitoring and cost and schedule control from start to finish."
+            },
+            "points": [
+              {
+                "text": {
+                  "ar": "جداول زمنية وتقارير دورية",
+                  "en": "Schedules and regular reports"
+                }
+              },
+              {
+                "text": {
+                  "ar": "ضبط الجودة والتكلفة",
+                  "en": "Quality and cost control"
+                }
+              }
+            ]
+          },
+          {
+            "icon": "road",
+            "title": {
+              "ar": "البنية التحتية",
+              "en": "Infrastructure"
+            },
+            "text": {
+              "ar": "أعمال الطرق وشبكات المرافق وتنسيق الموقع العام.",
+              "en": "Roads, utility networks and site landscaping."
+            },
+            "points": [
+              {
+                "text": {
+                  "ar": "رصف الطرق",
+                  "en": "Road paving"
+                }
+              },
+              {
+                "text": {
+                  "ar": "شبكات المياه والكهرباء",
+                  "en": "Water and power networks"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "projects",
+      "type": "projects",
+      "label": {
+        "ar": "مشاريعنا",
+        "en": "Projects"
+      },
+      "visible": true,
+      "data": {
+        "eyebrow": {
+          "ar": "الطوابق",
+          "en": "Floors"
+        },
+        "title": {
+          "ar": "مشاريع نفخر بتوقيعنا عليها",
+          "en": "Projects we proudly put our name on"
+        },
+        "subtitle": {
+          "ar": "اضغط على أي مشروع لتشاهد تفاصيله وصوره.",
+          "en": "Open any project to see its details and photos."
+        },
+        "items": [
+          {
+            "slug": "horizon-tower",
+            "sector": "commercial",
+            "title": {
+              "ar": "برج الأفق الإداري",
+              "en": "Horizon Office Tower"
+            },
+            "location": {
+              "ar": "العاصمة الإدارية الجديدة",
+              "en": "New Administrative Capital"
+            },
+            "year": "2024",
+            "client": {
+              "ar": "شركة أفق للتطوير العقاري",
+              "en": "Ofok Real Estate Development"
+            },
+            "area": {
+              "ar": "32,000 م²",
+              "en": "32,000 m²"
+            },
+            "duration": {
+              "ar": "30 شهرًا",
+              "en": "30 months"
+            },
+            "status": {
+              "ar": "مكتمل",
+              "en": "Completed"
+            },
+            "image": "assets/images/projects/tower.svg",
+            "description": {
+              "ar": "برج إداري من 22 طابقًا بواجهات زجاجية عالية الكفاءة وأنظمة إدارة ذكية للمبنى.",
+              "en": "A 22-storey office tower with high-performance glass facades and smart building systems."
+            },
+            "details": {
+              "ar": "صُمم البرج ليكون علامة مميزة في قلب الحي المالي، مع مساحات مكتبية مرنة يمكن تقسيمها حسب احتياج كل شركة.\n\nاستخدمنا نظام واجهات زجاجية مزدوجة يقلل استهلاك التكييف بنسبة كبيرة، مع نظام إدارة ذكي للإضاءة والتكييف والأمن. تم تسليم المشروع قبل الموعد المحدد بثلاثة أسابيع.",
+              "en": "The tower was designed as a landmark in the heart of the financial district, with flexible office floors that can be divided to suit each tenant.\n\nWe used a double-glazed facade system that significantly reduces cooling loads, together with a smart system for lighting, HVAC and security. The project was handed over three weeks ahead of schedule."
+            },
+            "scope": [
+              {
+                "text": {
+                  "ar": "التصميم المعماري والإنشائي الكامل",
+                  "en": "Full architectural and structural design"
+                }
+              },
+              {
+                "text": {
+                  "ar": "تنفيذ الهيكل الخرساني لعدد 22 طابقًا",
+                  "en": "Concrete structure for 22 storeys"
+                }
+              },
+              {
+                "text": {
+                  "ar": "واجهات زجاجية موفرة للطاقة",
+                  "en": "Energy-efficient glass facades"
+                }
+              },
+              {
+                "text": {
+                  "ar": "أنظمة إدارة المبنى الذكية",
+                  "en": "Smart building management systems"
+                }
+              }
+            ],
+            "gallery": [
+              {
+                "image": "assets/images/projects/tower.svg",
+                "caption": {
+                  "ar": "الواجهة الرئيسية",
+                  "en": "Main facade"
+                }
+              },
+              {
+                "image": "assets/images/gallery/night.svg",
+                "caption": {
+                  "ar": "البرج ليلًا",
+                  "en": "The tower at night"
+                }
+              },
+              {
+                "image": "assets/images/gallery/site-work.svg",
+                "caption": {
+                  "ar": "مرحلة تنفيذ الهيكل",
+                  "en": "Structural works"
+                }
+              },
+              {
+                "image": "assets/images/gallery/lobby.svg",
+                "caption": {
+                  "ar": "بهو المدخل",
+                  "en": "Entrance lobby"
+                }
+              }
+            ]
+          },
+          {
+            "slug": "palm-villa",
+            "sector": "residential",
+            "title": {
+              "ar": "فيلا النخيل",
+              "en": "Palm Villa"
+            },
+            "location": {
+              "ar": "الشيخ زايد",
+              "en": "Sheikh Zayed"
+            },
+            "year": "2023",
+            "client": {
+              "ar": "عميل خاص",
+              "en": "Private client"
+            },
+            "area": {
+              "ar": "650 م²",
+              "en": "650 m²"
+            },
+            "duration": {
+              "ar": "14 شهرًا",
+              "en": "14 months"
+            },
+            "status": {
+              "ar": "مكتمل",
+              "en": "Completed"
+            },
+            "image": "assets/images/projects/villa.svg",
+            "description": {
+              "ar": "فيلا سكنية معاصرة مع حديقة ومسبح وتصميم داخلي متكامل.",
+              "en": "A contemporary villa with a garden, pool and complete interior design."
+            },
+            "details": {
+              "ar": "فيلا من دورين وروف بتصميم عصري يعتمد على الخطوط البسيطة والإضاءة الطبيعية.\n\nشمل العمل التصميم والتنفيذ والتشطيب الكامل، بالإضافة إلى تنسيق الحديقة وتنفيذ المسبح وأنظمة المنزل الذكي.",
+              "en": "A two-storey villa with a roof terrace, designed around clean lines and natural light.\n\nThe work covered design, construction and full finishing, plus landscaping, the swimming pool and smart home systems."
+            },
+            "scope": [
+              {
+                "text": {
+                  "ar": "تصميم معماري وداخلي",
+                  "en": "Architectural and interior design"
+                }
+              },
+              {
+                "text": {
+                  "ar": "تنفيذ الهيكل والتشطيبات",
+                  "en": "Structure and finishing"
+                }
+              },
+              {
+                "text": {
+                  "ar": "مسبح وتنسيق حدائق",
+                  "en": "Pool and landscaping"
+                }
+              }
+            ],
+            "gallery": [
+              {
+                "image": "assets/images/projects/villa.svg",
+                "caption": {
+                  "ar": "الواجهة والحديقة",
+                  "en": "Facade and garden"
+                }
+              },
+              {
+                "image": "assets/images/gallery/blueprint.svg",
+                "caption": {
+                  "ar": "المخطط المعماري",
+                  "en": "Architectural plan"
+                }
+              },
+              {
+                "image": "assets/images/projects/interior.svg",
+                "caption": {
+                  "ar": "صالة المعيشة",
+                  "en": "Living room"
+                }
+              }
+            ]
+          },
+          {
+            "slug": "oasis-mall",
+            "sector": "commercial",
+            "title": {
+              "ar": "مركز الواحة التجاري",
+              "en": "Oasis Shopping Center"
+            },
+            "location": {
+              "ar": "مدينة 6 أكتوبر",
+              "en": "6th of October City"
+            },
+            "year": "2022",
+            "client": {
+              "ar": "مجموعة الواحة للاستثمار",
+              "en": "Oasis Investment Group"
+            },
+            "area": {
+              "ar": "18,000 م²",
+              "en": "18,000 m²"
+            },
+            "duration": {
+              "ar": "24 شهرًا",
+              "en": "24 months"
+            },
+            "status": {
+              "ar": "مكتمل",
+              "en": "Completed"
+            },
+            "image": "assets/images/projects/mall.svg",
+            "description": {
+              "ar": "مركز تجاري يضم محلات ومطاعم وجراجًا متعدد الطوابق.",
+              "en": "A mall with retail, restaurants and a multi-level car park."
+            },
+            "details": {
+              "ar": "مركز تجاري من ثلاثة طوابق يضم أكثر من 90 محلًا ومنطقة مطاعم وسينما، مع جراج يتسع لـ 600 سيارة.\n\nتم تصميم الحركة الداخلية لتسهيل وصول الزوار إلى كل المحلات، مع أنظمة حريق وتكييف مركزية.",
+              "en": "A three-level mall with more than 90 shops, a food court and a cinema, plus parking for 600 cars.\n\nVisitor circulation was planned so every shop is easy to reach, with central fire safety and HVAC systems."
+            },
+            "scope": [
+              {
+                "text": {
+                  "ar": "هيكل خرساني بفتحات كبيرة",
+                  "en": "Long-span concrete structure"
+                }
+              },
+              {
+                "text": {
+                  "ar": "جراج متعدد الطوابق",
+                  "en": "Multi-level car park"
+                }
+              },
+              {
+                "text": {
+                  "ar": "أنظمة الحريق والتكييف",
+                  "en": "Fire safety and HVAC systems"
+                }
+              }
+            ],
+            "gallery": [
+              {
+                "image": "assets/images/projects/mall.svg",
+                "caption": {
+                  "ar": "المدخل الرئيسي",
+                  "en": "Main entrance"
+                }
+              },
+              {
+                "image": "assets/images/gallery/facade.svg",
+                "caption": {
+                  "ar": "تفاصيل الواجهة",
+                  "en": "Facade detail"
+                }
+              },
+              {
+                "image": "assets/images/gallery/lobby.svg",
+                "caption": {
+                  "ar": "الممرات الداخلية",
+                  "en": "Interior concourse"
+                }
+              }
+            ]
+          },
+          {
+            "slug": "alshifa-medical",
+            "sector": "healthcare",
+            "title": {
+              "ar": "مجمع الشفاء الطبي",
+              "en": "Al-Shifa Medical Complex"
+            },
+            "location": {
+              "ar": "المنصورة",
+              "en": "Mansoura"
+            },
+            "year": "2023",
+            "client": {
+              "ar": "مؤسسة الشفاء للرعاية الصحية",
+              "en": "Al-Shifa Healthcare Foundation"
+            },
+            "area": {
+              "ar": "9,500 م²",
+              "en": "9,500 m²"
+            },
+            "duration": {
+              "ar": "20 شهرًا",
+              "en": "20 months"
+            },
+            "status": {
+              "ar": "مكتمل",
+              "en": "Completed"
+            },
+            "image": "assets/images/projects/hospital.svg",
+            "description": {
+              "ar": "مجمع عيادات ومستشفى يوم واحد بتجهيزات طبية ومعايير مكافحة عدوى صارمة.",
+              "en": "A clinics complex and day hospital built to strict medical and infection-control standards."
+            },
+            "details": {
+              "ar": "يضم المجمع 40 عيادة وغرف عمليات ومعامل تحاليل وأشعة.\n\nتم تنفيذ أنظمة تهوية وغازات طبية وفق المعايير الدولية، مع مسارات منفصلة للمرضى والطاقم الطبي.",
+              "en": "The complex includes 40 clinics, operating rooms, laboratories and radiology.\n\nVentilation and medical gas systems were installed to international standards, with separate routes for patients and staff."
+            },
+            "scope": [
+              {
+                "text": {
+                  "ar": "تنفيذ الهيكل والتشطيبات الطبية",
+                  "en": "Structure and medical-grade finishes"
+                }
+              },
+              {
+                "text": {
+                  "ar": "أنظمة الغازات الطبية والتهوية",
+                  "en": "Medical gases and ventilation"
+                }
+              },
+              {
+                "text": {
+                  "ar": "غرف عمليات معقمة",
+                  "en": "Sterile operating rooms"
+                }
+              }
+            ],
+            "gallery": [
+              {
+                "image": "assets/images/projects/hospital.svg",
+                "caption": {
+                  "ar": "المبنى الرئيسي",
+                  "en": "Main building"
+                }
+              },
+              {
+                "image": "assets/images/gallery/site-work.svg",
+                "caption": {
+                  "ar": "أعمال التنفيذ",
+                  "en": "Construction works"
+                }
+              },
+              {
+                "image": "assets/images/gallery/lobby.svg",
+                "caption": {
+                  "ar": "صالة الاستقبال",
+                  "en": "Reception hall"
+                }
+              }
+            ]
+          },
+          {
+            "slug": "regional-flyover",
+            "sector": "infrastructure",
+            "title": {
+              "ar": "محور الربط الإقليمي",
+              "en": "Regional Link Flyover"
+            },
+            "location": {
+              "ar": "الإسكندرية",
+              "en": "Alexandria"
+            },
+            "year": "2021",
+            "client": {
+              "ar": "جهة حكومية",
+              "en": "Government authority"
+            },
+            "area": {
+              "ar": "1.2 كم",
+              "en": "1.2 km"
+            },
+            "duration": {
+              "ar": "18 شهرًا",
+              "en": "18 months"
+            },
+            "status": {
+              "ar": "مكتمل",
+              "en": "Completed"
+            },
+            "image": "assets/images/projects/bridge.svg",
+            "description": {
+              "ar": "كوبري علوي مع أعمال الطرق والإنارة والصرف.",
+              "en": "A flyover including roadworks, lighting and drainage."
+            },
+            "details": {
+              "ar": "كوبري علوي بثلاث حارات في كل اتجاه لتخفيف الزحام عند أحد أهم التقاطعات.\n\nتم التنفيذ على مراحل دون إيقاف حركة المرور، مع أعمال إنارة وصرف أمطار كاملة.",
+              "en": "A three-lane flyover in each direction to relieve congestion at a major junction.\n\nIt was built in phases without stopping traffic, with complete lighting and storm drainage works."
+            },
+            "scope": [
+              {
+                "text": {
+                  "ar": "أساسات خوازيق",
+                  "en": "Piled foundations"
+                }
+              },
+              {
+                "text": {
+                  "ar": "كمرات سابقة الإجهاد",
+                  "en": "Pre-stressed girders"
+                }
+              },
+              {
+                "text": {
+                  "ar": "الرصف والإنارة",
+                  "en": "Paving and lighting"
+                }
+              }
+            ],
+            "gallery": [
+              {
+                "image": "assets/images/projects/bridge.svg",
+                "caption": {
+                  "ar": "الكوبري وقت الغروب",
+                  "en": "The flyover at sunset"
+                }
+              },
+              {
+                "image": "assets/images/gallery/blueprint.svg",
+                "caption": {
+                  "ar": "اللوحات التنفيذية",
+                  "en": "Shop drawings"
+                }
+              },
+              {
+                "image": "assets/images/gallery/night.svg",
+                "caption": {
+                  "ar": "الإنارة ليلًا",
+                  "en": "Night lighting"
+                }
+              }
+            ]
+          },
+          {
+            "slug": "nova-hq",
+            "sector": "interiors",
+            "title": {
+              "ar": "مقر شركة نوفا",
+              "en": "Nova Headquarters"
+            },
+            "location": {
+              "ar": "القاهرة الجديدة",
+              "en": "New Cairo"
+            },
+            "year": "2024",
+            "client": {
+              "ar": "شركة نوفا",
+              "en": "Nova"
+            },
+            "area": {
+              "ar": "2,400 م²",
+              "en": "2,400 m²"
+            },
+            "duration": {
+              "ar": "7 أشهر",
+              "en": "7 months"
+            },
+            "status": {
+              "ar": "مكتمل",
+              "en": "Completed"
+            },
+            "image": "assets/images/projects/interior.svg",
+            "description": {
+              "ar": "تصميم وتنفيذ مكاتب مفتوحة بطابع عصري ومستدام.",
+              "en": "Design and fit-out of modern, sustainable open-plan offices."
+            },
+            "details": {
+              "ar": "مساحة عمل مفتوحة تضم غرف اجتماعات وأماكن للتركيز ومنطقة استراحة.\n\nاخترنا خامات صديقة للبيئة وإضاءة موفرة للطاقة، مع عزل صوتي جيد بين المساحات.",
+              "en": "An open workspace with meeting rooms, focus areas and a break zone.\n\nWe chose eco-friendly materials and energy-saving lighting, with good acoustic separation between spaces."
+            },
+            "scope": [
+              {
+                "text": {
+                  "ar": "التصميم الداخلي",
+                  "en": "Interior design"
+                }
+              },
+              {
+                "text": {
+                  "ar": "أعمال الجبس والإضاءة",
+                  "en": "Ceilings and lighting"
+                }
+              },
+              {
+                "text": {
+                  "ar": "الأثاث والتجهيزات",
+                  "en": "Furniture and fit-out"
+                }
+              }
+            ],
+            "gallery": [
+              {
+                "image": "assets/images/projects/interior.svg",
+                "caption": {
+                  "ar": "منطقة العمل",
+                  "en": "Work area"
+                }
+              },
+              {
+                "image": "assets/images/gallery/lobby.svg",
+                "caption": {
+                  "ar": "الاستقبال",
+                  "en": "Reception"
+                }
+              },
+              {
+                "image": "assets/images/gallery/facade.svg",
+                "caption": {
+                  "ar": "تفاصيل التشطيب",
+                  "en": "Finishing details"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "stats",
+      "type": "stats",
+      "label": {
+        "ar": "إنجازاتنا",
+        "en": "Achievements"
+      },
+      "visible": true,
+      "data": {
+        "eyebrow": {
+          "ar": "الواجهات",
+          "en": "Facade"
+        },
+        "title": {
+          "ar": "أرقام تتحدث عن نفسها",
+          "en": "Numbers that speak for themselves"
+        },
+        "items": [
+          {
+            "value": 250,
+            "suffix": {
+              "ar": "+",
+              "en": "+"
+            },
+            "label": {
+              "ar": "مشروع منفذ",
+              "en": "Projects delivered"
+            }
+          },
+          {
+            "value": 18,
+            "suffix": {
+              "ar": "",
+              "en": ""
+            },
+            "label": {
+              "ar": "عامًا من الخبرة",
+              "en": "Years of experience"
+            }
+          },
+          {
+            "value": 1.2,
+            "suffix": {
+              "ar": "M م²",
+              "en": "M m²"
+            },
+            "label": {
+              "ar": "مساحة مبنية",
+              "en": "Built area"
+            }
+          },
+          {
+            "value": 98,
+            "suffix": {
+              "ar": "%",
+              "en": "%"
+            },
+            "label": {
+              "ar": "رضا العملاء",
+              "en": "Client satisfaction"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "testimonials",
+      "type": "testimonials",
+      "label": {
+        "ar": "آراء العملاء",
+        "en": "Testimonials"
+      },
+      "visible": true,
+      "data": {
+        "eyebrow": {
+          "ar": "السطح",
+          "en": "Roof"
+        },
+        "title": {
+          "ar": "ماذا يقول عملاؤنا",
+          "en": "What our clients say"
+        },
+        "items": [
+          {
+            "name": {
+              "ar": "م. أحمد سامي",
+              "en": "Eng. Ahmed Samy"
+            },
+            "role": {
+              "ar": "مدير التطوير، شركة أفق العقارية",
+              "en": "Development Director, Ofok Real Estate"
+            },
+            "text": {
+              "ar": "التزام مذهل بالمواعيد وجودة تنفيذ فاقت توقعاتنا. تم تسليم البرج قبل الموعد بثلاثة أسابيع.",
+              "en": "Remarkable commitment to deadlines and build quality beyond our expectations. The tower was handed over three weeks early."
+            },
+            "rating": 5,
+            "avatar": ""
+          },
+          {
+            "name": {
+              "ar": "د. منى الشريف",
+              "en": "Dr. Mona El-Sherif"
+            },
+            "role": {
+              "ar": "مالكة فيلا، الشيخ زايد",
+              "en": "Villa owner, Sheikh Zayed"
+            },
+            "text": {
+              "ar": "فريق محترف من أول اجتماع. كانوا يرسلون تقارير وصورًا أسبوعية، وشعرت بالاطمئنان طوال فترة البناء.",
+              "en": "A professional team from the very first meeting. Weekly reports and photos kept me reassured throughout construction."
+            },
+            "rating": 5,
+            "avatar": ""
+          },
+          {
+            "name": {
+              "ar": "أ. كريم عادل",
+              "en": "Karim Adel"
+            },
+            "role": {
+              "ar": "الرئيس التنفيذي، نوفا",
+              "en": "CEO, Nova"
+            },
+            "text": {
+              "ar": "حولوا مساحة فارغة إلى مقر عمل ملهم. الاهتمام بالتفاصيل واضح في كل ركن.",
+              "en": "They turned an empty shell into an inspiring workplace. The attention to detail shows in every corner."
+            },
+            "rating": 5,
+            "avatar": ""
+          },
+          {
+            "name": {
+              "ar": "م. هشام فؤاد",
+              "en": "Eng. Hesham Fouad"
+            },
+            "role": {
+              "ar": "استشاري، مجمع الشفاء",
+              "en": "Consultant, Al-Shifa Complex"
+            },
+            "text": {
+              "ar": "دقة في تطبيق المواصفات الطبية وتنسيق ممتاز مع كل الجهات. شريك يُعتمد عليه.",
+              "en": "Precise application of medical specifications and excellent coordination with every party. A partner you can rely on."
+            },
+            "rating": 4,
+            "avatar": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "contact",
+      "type": "contact",
+      "label": {
+        "ar": "تواصل معنا",
+        "en": "Contact"
+      },
+      "visible": true,
+      "data": {
+        "eyebrow": {
+          "ar": "التسليم",
+          "en": "Handover"
+        },
+        "title": {
+          "ar": "جاهزون لبناء مشروعك القادم",
+          "en": "Ready to build your next project"
+        },
+        "subtitle": {
+          "ar": "تواصل معنا مباشرة وسيرد عليك مهندس مختص في أقرب وقت.",
+          "en": "Reach us directly and a specialist engineer will get back to you shortly."
+        }
+      }
+    }
+  ]
+}

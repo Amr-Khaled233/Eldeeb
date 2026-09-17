@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>لوحة التحكم | إدارة المحتوى</title>
+  <link rel="icon" href="assets/icons/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="assets/icons/icon-192.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('bc:admin-theme');
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <!-- تسجيل الدخول -->
+  <div class="login" id="login" hidden>
+    <form class="login-card" id="loginForm">
+      <div class="login-logo" id="loginLogo"></div>
+      <h1>لوحة التحكم</h1>
+      <p>أدخل كلمة المرور لإدارة محتوى الموقع</p>
+      <label class="field">
+        <span>كلمة المرور</span>
+        <input type="password" id="loginPass" autocomplete="current-password" required autofocus>
+      </label>
+      <p class="login-error" id="loginError" role="alert"></p>
+      <button class="btn primary block" type="submit">دخول</button>
+      <a class="login-back" href="./">← العودة للموقع</a>
+    </form>
+  </div>
+
+  <!-- التطبيق -->
+  <div class="app" id="app" hidden>
+    <aside class="sidebar" id="sidebar">
+      <div class="sb-brand">
+        <span class="sb-logo" id="sbLogo"></span>
+        <div><b>لوحة التحكم</b><small id="sbSite"></small></div>
+      </div>
+      <nav class="sb-nav" id="sbNav" aria-label="أقسام لوحة التحكم"></nav>
+      <div class="sb-foot">
+        <a class="sb-link" href="./" target="_blank" rel="noopener" id="openSite"></a>
+        <button class="sb-link" type="button" id="themeToggle"></button>
+        <button class="sb-link" type="button" id="logoutBtn"></button>
+      </div>
+    </aside>
+    <div class="sb-backdrop" id="sbBackdrop"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="icon-btn sb-toggle" type="button" id="sbToggle" aria-label="القائمة"></button>
+        <div class="topbar-title">
+          <h1 id="viewTitle"></h1>
+          <p id="viewDesc"></p>
+        </div>
+        <div class="topbar-actions">
+          <span class="save-state" id="saveState" aria-live="polite"></span>
+          <button class="btn ghost" type="button" id="previewBtn"></button>
+          <button class="btn primary" type="button" id="saveBtn"></button>
+        </div>
+      </header>
+      <div class="notice" id="notice" hidden></div>
+      <div class="editor" id="editor"></div>
+    </div>
+  </div>
+
+  <!-- المعاينة -->
+  <div class="modal" id="previewModal" role="dialog" aria-modal="true" aria-label="معاينة الموقع" hidden>
+    <div class="modal-bar">
+      <strong>معاينة المسودة</strong>
+      <div class="seg" id="deviceSeg" role="group" aria-label="حجم الشاشة"></div>
+      <div class="seg" id="langSeg" role="group" aria-label="اللغة">
+        <button type="button" data-lang="ar" class="is-on">عربي</button>
+        <button type="button" data-lang="en">English</button>
+      </div>
+      <div class="modal-actions">
+        <button class="icon-btn" type="button" id="pvReload" title="تحديث"></button>
+        <a class="icon-btn" id="pvOpen" href="./?preview=1" target="_blank" rel="noopener" title="فتح في تبويب جديد"></a>
+        <button class="icon-btn" type="button" id="pvClose" title="إغلاق"></button>
+      </div>
+    </div>
+    <div class="modal-stage">
+      <div class="frame-wrap" id="frameWrap" data-device="desktop">
+        <iframe id="previewFrame" title="معاينة الموقع"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/config.js" defer></script>
+  <script src="js/icons.js" defer></script>
+  <script src="js/i18n.js" defer></script>
+  <script src="js/store.js" defer></script>
+  <script src="admin.js" defer></script>
+</body>
+</html>
