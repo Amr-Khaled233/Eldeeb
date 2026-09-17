@@ -207,7 +207,7 @@
       cols: 2,
       fields: [
         F('contact.phone', 'رقم الهاتف', 'text', { dir: 'ltr' }),
-        F('contact.whatsapp', 'رقم واتساب (بالكود الدولي بدون +)', 'text', { dir: 'ltr', hint: 'مثال: 201000000000. اتركه فارغًا لإخفاء زر واتساب' }),
+        F('contact.whatsapp', 'رقم واتساب (اختياري)', 'text', { dir: 'ltr', hint: 'لو فاضي بيتستخدم رقم الهاتف. اكتبه بس لو رقم الواتساب مختلف، مثال: 01012345678' }),
         F('contact.email', 'البريد الإلكتروني', 'text', { dir: 'ltr' }),
         F('contact.mapEmbed', 'رابط تضمين خريطة Google (اختياري)', 'text', { dir: 'ltr', hint: 'من Google Maps: مشاركة ← تضمين خريطة ← انسخ قيمة src فقط' }),
         L('contact.address', 'العنوان'),

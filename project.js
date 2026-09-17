@@ -80,7 +80,7 @@
     }).join('');
 
     var c = S.settings.contact || {};
-    var wa = S.digits(c.whatsapp);
+    var wa = S.waNumber(c);
     var tel = String(c.phone || '').replace(/[^\d+]/g, '');
     var waText = encodeURIComponent((S.lang === 'ar' ? 'مرحبًا، أريد الاستفسار عن مشروع مشابه لـ ' : 'Hello, I would like to ask about a project similar to ') + t(p.title));
 

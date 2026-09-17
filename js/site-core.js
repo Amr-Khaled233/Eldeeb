@@ -43,6 +43,18 @@
   };
   S.linkAttrs = function (href) { return /^https?:/i.test(href) ? ' target="_blank" rel="noopener"' : ''; };
   S.digits = function (s) { return String(s || '').replace(/\D/g, ''); };
+  /** رقم واتساب بالصيغة الدولية: من حقل واتساب، وإن كان فارغًا فمن رقم الهاتف */
+  S.waNumber = function (contact) {
+    function norm(v) {
+      var d = S.digits(v);
+      if (d.indexOf('00') === 0) d = d.slice(2);
+      if (/^01\d{9}$/.test(d)) d = '2' + d; // رقم مصري محلي 01xxxxxxxxx
+      if (d === '201000000000') return '';   // الرقم التجريبي القديم
+      return d.length >= 8 ? d : '';
+    }
+    contact = contact || {};
+    return norm(contact.whatsapp) || norm(contact.phone);
+  };
   S.fmt = function (n, dec, minInt) {
     return Number(n).toLocaleString(S.numLocale, {
       minimumFractionDigits: dec || 0, maximumFractionDigits: dec || 0, minimumIntegerDigits: minInt || 1
@@ -151,7 +163,7 @@
     S.$('#brand').setAttribute('href', navHref('top'));
     S.$$('[data-logo-text]').forEach(function (el) { el.textContent = S.t(s.logoText); });
 
-    var wa = S.digits(s.contact && s.contact.whatsapp);
+    var wa = S.waNumber(s.contact);
     var waEl = S.$('#waFloat');
     if (waEl && wa) {
       waEl.href = 'https://wa.me/' + wa;

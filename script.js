@@ -149,7 +149,7 @@
   /** بيانات التواصل + أزرار مباشرة + الخريطة (تُستخدم أيضًا في صفحة المشروع) */
   function contactBlock() {
     var c = S.settings.contact || {};
-    var wa = S.digits(c.whatsapp);
+    var wa = S.waNumber(c);
     var tel = String(c.phone || '').replace(/[^\d+]/g, '');
     var info = [];
     if (c.phone) info.push(['a', 'tel:' + tel, 'phone', S.T.callUs, '<span class="ltr">' + esc(c.phone) + '</span>']);
