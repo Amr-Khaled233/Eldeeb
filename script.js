@@ -50,13 +50,6 @@
         (btns ? '<div class="hero-actions">' + btns + '</div>' : '') +
         (badges ? '<ul class="hero-badges">' + badges + '</ul>' : '') +
         '</div></div>' +
-        '<div class="hero-hud" aria-hidden="true">' +
-        '<div class="hud-row"><span class="hud-label">' + esc(S.T.stageLabel) + '</span><span class="hud-percent"><b id="hudPercent">0</b>%</span></div>' +
-        '<div class="hud-phase" id="hudPhase">' + esc(S.T.phases[0]) + '</div>' +
-        '<div class="hud-bar"><span id="hudBar"></span></div>' +
-        '<div class="hud-meta"><span>' + esc(S.T.floors) + ' <bdi dir="ltr"><b id="hudFloors">0</b>/<b>' + S.fmt(CityScene.FLOORS) + '</b></bdi></span>' +
-        '<span class="hud-done">' + esc(S.T.done) + '</span></div></div>' +
-        (ctx.next ? '<a class="scroll-cue" href="#' + esc(ctx.next) + '"><span class="mouse"></span><span>' + esc(S.T.scrollCue) + '</span></a>' : '') +
         '</section>';
     },
 
@@ -388,7 +381,10 @@
   /* ---------------- مشهد البناء ---------------- */
   var hud = {};
   function updateHud(p) {
+    if (hud.none) return;
     if (!hud.pctEl) {
+      hud.none = !$('#hudPercent');
+      if (hud.none) return;
       hud.pctEl = $('#hudPercent'); hud.phaseEl = $('#hudPhase'); hud.floorsEl = $('#hudFloors');
       hud.barEl = $('#hudBar'); hud.box = $('.hero-hud'); hud.hero = $('.hero');
       if (!hud.pctEl) return;
@@ -419,7 +415,6 @@
       return null;
     }
     var tl = CityScene.timeline(svg, updateHud);
-    tl.to('.scroll-cue', { autoAlpha: 0, duration: 4 }, 0);
     ScrollTrigger.create({
       trigger: '.hero',
       start: 'top top',
@@ -446,7 +441,7 @@
     var intro = gsap.timeline({ delay: 0.25, defaults: { ease: 'power3.out' } });
     var eyebrow = $$('.hero .eyebrow');
     var wordsEl = $$('.hero-title .word');
-    var rest = $$('.hero-sub, .hero-actions, .hero-badges, .hero-hud');
+    var rest = $('.hero-sub, .hero-actions, .hero-badges');
     if (eyebrow.length) intro.from(eyebrow, { y: 20, autoAlpha: 0, duration: 0.6 });
     if (wordsEl.length) intro.from(wordsEl, { yPercent: 60, autoAlpha: 0, duration: 0.9, stagger: 0.07 }, '-=0.3');
     if (rest.length) intro.from(rest, { y: 26, autoAlpha: 0, duration: 0.8, stagger: 0.12 }, '-=0.55');

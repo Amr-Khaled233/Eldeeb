@@ -29,6 +29,9 @@
   --sc-soil: #b8ab95; --sc-walk: #cfd5da; --sc-road: #545e6a; --sc-lane: rgba(255,255,255,.75);
   --sc-dusk: #0D1B2A; --sc-dusk-max: .42; --sc-grid: rgba(13,27,42,.10); --sc-cloud: rgba(255,255,255,.85);
   --sc-star: .25;
+  --sc-face-a: #7f93a8; --sc-face-b: #5b6f84; --sc-side: #465a6e; --sc-top: #9fb0c1; --sc-haze: #dfe7ee;
+  --sc-plaza: #d9d2c3; --sc-crown: #2b3f55;
+  --sc-cur-a: #d7e6f2; --sc-cur-b: #7f9ab3; --sc-cur-c: #4d6680; --sc-cur-d: #8fa9c0; --sc-side-a: #5d7690; --sc-side-b: #2f4458;
 
   --surface-2: color-mix(in srgb, var(--surface) 90%, var(--text) 5%);
   --primary-soft: color-mix(in srgb, var(--primary) 16%, transparent);
@@ -53,6 +56,9 @@
     --sc-soil: #09121b; --sc-walk: #1c2a38; --sc-road: #0a131c; --sc-lane: rgba(226,230,234,.28);
     --sc-dusk: #020810; --sc-dusk-max: .55; --sc-grid: rgba(200,157,42,.10); --sc-cloud: rgba(226,230,234,.07);
     --sc-star: 1;
+    --sc-face-a: #1e3348; --sc-face-b: #14263a; --sc-side: #0d1a28; --sc-top: #2b4460; --sc-haze: #0D1B2A;
+    --sc-plaza: #1a2735; --sc-crown: #0f1e2e;
+    --sc-cur-a: #6f8ea8; --sc-cur-b: #243a52; --sc-cur-c: #16283b; --sc-cur-d: #3b5875; --sc-side-a: #1c3148; --sc-side-b: #0a1522;
     color-scheme: dark;
   }
 }
@@ -67,6 +73,9 @@
   --sc-soil: #09121b; --sc-walk: #1c2a38; --sc-road: #0a131c; --sc-lane: rgba(226,230,234,.28);
   --sc-dusk: #020810; --sc-dusk-max: .55; --sc-grid: rgba(200,157,42,.10); --sc-cloud: rgba(226,230,234,.07);
   --sc-star: 1;
+  --sc-face-a: #1e3348; --sc-face-b: #14263a; --sc-side: #0d1a28; --sc-top: #2b4460; --sc-haze: #0D1B2A;
+  --sc-plaza: #1a2735; --sc-crown: #0f1e2e;
+  --sc-cur-a: #6f8ea8; --sc-cur-b: #243a52; --sc-cur-c: #16283b; --sc-cur-d: #3b5875; --sc-side-a: #1c3148; --sc-side-b: #0a1522;
   color-scheme: dark;
 }
 :root[lang="en"] {
@@ -230,8 +239,8 @@ body:not(.is-loading) .loader { opacity: 0; visibility: hidden; }
 .hero-scene { position: absolute; inset: 0; z-index: 0; }
 .hero-scene svg { display: block; width: 100%; height: 100%; }
 .hero-scrim { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
-[dir="rtl"] .hero-scrim { background: linear-gradient(270deg, color-mix(in srgb, var(--bg) 92%, transparent) 0%, color-mix(in srgb, var(--bg) 70%, transparent) 34%, transparent 58%); }
-[dir="ltr"] .hero-scrim { background: linear-gradient(90deg, color-mix(in srgb, var(--bg) 92%, transparent) 0%, color-mix(in srgb, var(--bg) 70%, transparent) 34%, transparent 58%); }
+[dir="rtl"] .hero-scrim { background: linear-gradient(270deg, color-mix(in srgb, var(--bg) 95%, transparent) 0%, color-mix(in srgb, var(--bg) 82%, transparent) 38%, transparent 62%); }
+[dir="ltr"] .hero-scrim { background: linear-gradient(90deg, color-mix(in srgb, var(--bg) 95%, transparent) 0%, color-mix(in srgb, var(--bg) 82%, transparent) 38%, transparent 62%); }
 .hero-inner { position: relative; z-index: 2; height: 100%; display: flex; align-items: center; padding: calc(var(--header-h) + 20px) var(--pad-x) 100px; }
 .hero-content { max-width: 600px; }
 .eyebrow {
@@ -282,8 +291,8 @@ body:not(.is-loading) .loader { opacity: 0; visibility: hidden; }
 /* ---------- عناصر المشهد ---------- */
 .sc-grid { fill: none; stroke: var(--sc-grid); stroke-width: 1; }
 .sc-gold { fill: url(#gGold); }
-.sc-gold-edge { fill: var(--primary); opacity: .85; }
-.sc-gold-line { stroke: var(--primary); stroke-width: 2; }
+.sc-gold-edge { fill: var(--primary); opacity: .9; }
+.sc-gold-line { stroke: var(--primary); stroke-width: 2; fill: none; }
 .sc-dusk { fill: var(--sc-dusk); fill-opacity: var(--sc-dusk-max); }
 .sc-stars circle { fill: #fff; fill-opacity: var(--sc-star); }
 .sc-stars .twinkle { animation: twinkle 2.6s ease-in-out infinite; }
@@ -292,56 +301,91 @@ body:not(.is-loading) .loader { opacity: 0; visibility: hidden; }
 .sc-sun-mid { stop-color: #f0c860; stop-opacity: .85; }
 .sc-sun-edge { stop-color: #C89D2A; stop-opacity: 0; }
 .sc-clouds path { fill: var(--sc-cloud); }
-.sc-tw { fill: var(--sc-tw); }
+/* أبراج */
+.sc-face-a { stop-color: var(--sc-face-a); }
+.sc-face-b { stop-color: var(--sc-face-b); }
+.sc-side { fill: var(--sc-side); }
+.sc-top { fill: var(--sc-top); }
 .sc-tw-back { fill: var(--sc-tw-back); }
+.sc-haze-0 { stop-color: var(--sc-haze); stop-opacity: 0; }
+.sc-haze-1 { stop-color: var(--sc-haze); stop-opacity: .75; }
 .sc-win { fill: var(--sc-win); }
+.sc-win-side { fill: var(--sc-win); opacity: .75; }
 .sc-win-b { fill: var(--sc-win-b); }
 .sc-litwin { fill: #ffd98a; }
 .sc-litwin-2 { fill: #fff0c2; }
 .sc-lit { opacity: 0; }
-.sc-cap { fill: var(--sc-cap); }
-.sc-steel { stroke: #9aa3ab; stroke-width: 2; fill: none; }
+.sc-cap { fill: var(--sc-top); }
+.sc-steel { stroke: #aab2b9; stroke-width: 2; fill: none; }
 .sc-beacon { fill: #ef4444; animation: blink 1.4s steps(2, jump-none) infinite; }
 @keyframes blink { 50% { opacity: .15; } }
+/* الأرض */
 .sc-soil { fill: var(--sc-soil); }
 .sc-walk { fill: var(--sc-walk); }
 .sc-road { fill: var(--sc-road); }
+.sc-road-sheen { fill: url(#gGlow); opacity: .05; }
 .sc-lane { stroke: var(--sc-lane); stroke-width: 2; }
-.sc-ground-line { stroke: var(--primary); stroke-width: 2; }
+.sc-ground-line { stroke: var(--primary); stroke-width: 1.5; opacity: .7; }
+.sc-plaza { fill: var(--sc-plaza); }
+.sc-pave-line { stroke: rgba(0,0,0,.18); stroke-width: 1; fill: none; }
+.sc-fence { fill: #0D1B2A; stroke: rgba(200,157,42,.5); stroke-width: 1; }
+/* البرج الرئيسي */
 .sc-footing { fill: #4d5963; }
-.sc-slab { fill: #a7aeb5; }
-.sc-slab-edge { fill: #6c757d; }
-.sc-glass { stroke: #0b1622; stroke-width: 1; }
-.sc-shine { fill: #fff; opacity: .16; }
-.sc-mainlit { fill: #ffd98a; opacity: 0; mix-blend-mode: screen; }
-.sc-fins { stroke: color-mix(in srgb, var(--primary) 60%, transparent); stroke-width: 2; }
-.sc-sign { fill: var(--primary); font: 800 15px var(--font); letter-spacing: .04em; }
-.sc-ghost rect, .sc-ghost path { fill: none; stroke: var(--primary); stroke-width: 1.2; stroke-dasharray: 6 6; opacity: .6; }
 .sc-podium { fill: #7c858d; }
-.sc-spark { color: #ffd166; }
+.sc-column { opacity: .95; }
+.sc-slab { fill: #b3b9bf; }
+.sc-slab-edge { fill: #6c757d; }
+.sc-slab-top { fill: #c9ced3; }
+.sc-slab-side { fill: #7f878f; }
+.sc-cur-a { stop-color: var(--sc-cur-a); }
+.sc-cur-b { stop-color: var(--sc-cur-b); }
+.sc-cur-c { stop-color: var(--sc-cur-c); }
+.sc-cur-d { stop-color: var(--sc-cur-d); }
+.sc-side-a { stop-color: var(--sc-side-a); }
+.sc-side-b { stop-color: var(--sc-side-b); }
+.sc-glass { stroke: rgba(8, 16, 26, .7); stroke-width: 1; }
+.sc-mullion { stroke: rgba(8, 16, 26, .55); stroke-width: 1.2; fill: none; }
+.sc-spandrel { stroke: var(--primary); stroke-width: 1.6; fill: none; opacity: .85; }
+.sc-side-lines { stroke: rgba(200,157,42,.6); stroke-width: 1.2; fill: none; }
+.sc-mainlit { fill: #ffd98a; opacity: 0; mix-blend-mode: screen; }
+.sc-lobby-door { fill: rgba(13,27,42,.35); }
+.sc-crown { fill: var(--sc-crown); }
+.sc-fins { stroke: url(#gGoldH); stroke-width: 3; }
+.sc-sign { fill: var(--primary); font: 800 15px var(--font); letter-spacing: .06em; }
+.sc-ghost rect, .sc-ghost path { fill: none; stroke: var(--primary); stroke-width: 1.2; stroke-dasharray: 6 6; opacity: .6; }
+.sc-shine { animation: shine 5.5s ease-in-out infinite; }
+@keyframes shine { 0% { transform: skewX(-18deg) translateX(0); } 60%, 100% { transform: skewX(-18deg) translateX(620px); } }
+.sc-beam { mix-blend-mode: screen; transform-box: view-box; }
+.sc-beam-a { transform-origin: 0px 300px; animation: beamA 7s ease-in-out infinite alternate; }
+.sc-beam-b { transform-origin: 0px 300px; animation: beamB 8s ease-in-out infinite alternate; }
+@keyframes beamA { from { transform: rotate(-14deg); } to { transform: rotate(18deg); } }
+@keyframes beamB { from { transform: rotate(16deg); } to { transform: rotate(-20deg); } }
 .sc-spark circle { fill: #fff3b0; }
 .sc-spark path { stroke: #ffc84a; stroke-width: 1.6; stroke-linecap: round; }
 .sc-spark { animation: spark .5s steps(2, jump-none) infinite; }
 @keyframes spark { 50% { opacity: .1; } }
-.sc-pole { stroke: #6f7a85; stroke-width: 3; fill: none; }
-.sc-lamp-head { fill: #3b4652; }
+/* الشارع */
+.sc-pole { stroke: #7c8791; stroke-width: 3; fill: none; }
 .sc-lamp-glow, .sc-lamp-pool { opacity: 0; }
-.sc-lamp-pool { fill: #ffd98a; fill-opacity: .25; }
+.sc-lamp-pool { fill: #ffd98a; fill-opacity: .22; }
 .sc-trunk { fill: #5b4636; }
 .sc-leaf { fill: #2f7a4b; }
 .sc-leaf-2 { fill: #3f9660; }
+.sc-palm-trunk { stroke: #8a6a45; stroke-width: 5; fill: none; stroke-linecap: round; }
+.sc-palm-leaf { stroke: #3d8c55; stroke-width: 4; fill: none; stroke-linecap: round; }
 .sc-car { animation: drive 18s linear infinite; }
 @keyframes drive { from { transform: translateX(-2600px); } to { transform: translateX(2600px); } }
 .sc-car-body.c1, .sc-car-cab.c1 { fill: #C89D2A; }
 .sc-car-body.c2, .sc-car-cab.c2 { fill: #d9dde1; }
-.sc-car-body.c3, .sc-car-cab.c3 { fill: #b83a3a; }
+.sc-car-body.c3, .sc-car-cab.c3 { fill: #1f2a36; }
 .sc-car-body.c4, .sc-car-cab.c4 { fill: #3b6ea8; }
-.sc-car-body.c5, .sc-car-cab.c5 { fill: #2a3440; }
+.sc-car-body.c5, .sc-car-cab.c5 { fill: #8d959e; }
 .sc-car-win { fill: #9fc3dd; opacity: .8; }
+.sc-car-reflect { fill: #fff; opacity: .05; }
 .sc-wheel { fill: #0b0f14; }
 .sc-headlight { fill: #fff6d5; }
 .sc-taillight { fill: #ff4d4d; }
-.sc-beam { fill: #fff3c4; opacity: .16; }
+.sc-beam-car { fill: #fff3c4; opacity: .14; }
 .sc-chassis { fill: #2d3640; }
 .sc-drum { fill: #d8dce0; stroke: #8e979f; stroke-width: 2; }
 .sc-drum-stripe { stroke: #C89D2A; stroke-width: 4; fill: none; }
@@ -353,9 +397,11 @@ body:not(.is-loading) .loader { opacity: 0; visibility: hidden; }
 .sc-hook { stroke: #c7ccd1; stroke-width: 2.4; fill: none; }
 
 /* المشهد بدون أنيميشن: مكتمل ومضاء */
-.scene-static #sparks, .scene-static #ghost, .scene-static #truck { display: none; }
+.scene-static #sparks, .scene-static #ghost, .scene-static #truck, .scene-static #fence, .scene-static #bpGrid { display: none; }
 .scene-static .sc-lit, .scene-static .sc-mainlit, .scene-static .sc-lamp-glow, .scene-static .sc-lamp-pool { opacity: 1; }
-.scene-static #hookLoad { opacity: 0; }
+.scene-static #hookLoad, .scene-static .sc-slab-top, .scene-static .sc-slab-side { opacity: 0; }
+.scene-static .sc-slab { fill: #1f3246; }
+.scene-static .sc-column { fill: #1a2b3d; }
 
 /* ---------- About ---------- */
 .about-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
