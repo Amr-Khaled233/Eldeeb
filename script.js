@@ -43,6 +43,7 @@
       // المشهد بعرض الشاشة (بدون نص)، والنص في قسم مستقل يظهر بعد انتهاء البناء
       return '<section id="' + esc(s.id) + '" class="hero" aria-label="' + te(s.label) + '">' +
         '<div class="hero-scene" aria-hidden="true"><svg id="citySvg" preserveAspectRatio="xMidYMid slice" direction="ltr"></svg></div>' +
+        '<div class="scene-caption" id="sceneCaption" hidden><span class="cap-eyebrow"></span><strong class="cap-title"></strong><span class="cap-sub"></span></div>' +
         '</section>' +
         '<section class="section hero-intro"><div class="container intro-grid">' +
         '<div class="hero-content">' +
@@ -264,58 +265,109 @@
     });
   }
 
-  /* ---------------- مشهد البناء ---------------- */
-  var hud = {};
-  function updateHud(p) {
-    if (hud.none) return;
-    if (!hud.pctEl) {
-      hud.none = !$('#hudPercent');
-      if (hud.none) return;
-      hud.pctEl = $('#hudPercent'); hud.phaseEl = $('#hudPhase'); hud.floorsEl = $('#hudFloors');
-      hud.barEl = $('#hudBar'); hud.box = $('.hero-hud'); hud.hero = $('.hero');
-      if (!hud.pctEl) return;
+  /* ---------------- مشهد البناء + عناوين الأقسام ---------------- */
+  function sectionOf(type) {
+    var s = S.section(type);
+    return s && s.visible !== false ? s : null;
+  }
+  function firstSentence(text) {
+    var s = String(text || '').split(/[.؟!]/)[0];
+    return s.trim();
+  }
+  /** نص العنوان لكل مرحلة، مأخوذ من أقسام الموقع */
+  function captionFor(c) {
+    var hero = S.section('hero'), d;
+    if (c.key === 'intro') {
+      d = hero ? hero.data : {};
+      return { eyebrow: t(d.eyebrow), title: t(S.settings.siteName), sub: [t(d.title), t(d.highlight)].filter(Boolean).join(' ') };
     }
-    var pct = Math.round(p * 100);
-    var phase = CityScene.phaseAt(p);
-    var floors = CityScene.floorsAt(p);
-    if (hud.pct !== pct) { hud.pctEl.textContent = S.fmt(pct); hud.pct = pct; }
-    if (hud.phase !== phase) { hud.phaseEl.textContent = S.T.phases[phase]; hud.phase = phase; }
-    if (hud.floors !== floors) { hud.floorsEl.textContent = S.fmt(floors); hud.floors = floors; }
-    hud.barEl.style.transform = 'scaleX(' + p + ')';
-    hud.box.classList.toggle('is-complete', p >= 0.99);
-    hud.hero.classList.toggle('is-building', p > 0.02);
+    if (c.key === 'about' && sectionOf('about')) {
+      d = sectionOf('about');
+      return { eyebrow: t(d.label), title: t(d.data.title) };
+    }
+    if (c.key === 'services' && sectionOf('services')) {
+      d = sectionOf('services');
+      var items = d.data.items || [];
+      if (!items.length) return { eyebrow: t(d.label), title: t(d.data.title) };
+      var i = Math.min(items.length - 1, Math.floor(c.floor * items.length / c.floors));
+      return { eyebrow: t(d.label), title: t(items[i].title), sub: S.pad(i + 1) + ' / ' + S.pad(items.length) };
+    }
+    if (c.key === 'projects' && sectionOf('projects')) {
+      d = sectionOf('projects');
+      return { eyebrow: t(d.label), title: t(d.data.title) };
+    }
+    if (c.key === 'final') {
+      return { eyebrow: t(S.settings.logoText), title: firstSentence(t(S.settings.tagline)) || t(S.settings.siteName) };
+    }
+    return null;
+  }
+
+  var cap = { sig: null, timer: null };
+  function updateCaption(p) {
+    var box = $('#sceneCaption');
+    if (!box) return;
+    var c = captionFor(CityScene.captionAt(p));
+    var sig = c ? c.eyebrow + '|' + c.title + '|' + (c.sub || '') : '';
+    if (sig === cap.sig) return;
+    cap.sig = sig;
+    box.classList.add('is-out');
+    clearTimeout(cap.timer);
+    cap.timer = setTimeout(function () {
+      box.hidden = !c;
+      if (c) {
+        $('.cap-eyebrow', box).textContent = c.eyebrow || '';
+        $('.cap-title', box).textContent = c.title || '';
+        $('.cap-sub', box).textContent = c.sub || '';
+        $('.cap-sub', box).hidden = !c.sub;
+      }
+      box.classList.remove('is-out');
+    }, 180);
+  }
+
+  // أجهزة ضعيفة أو شاشات صغيرة: عناصر متحركة أقل
+  function isLite() {
+    var cores = navigator.hardwareConcurrency || 8;
+    var mem = navigator.deviceMemory || 8;
+    return cores <= 4 || mem <= 4 || window.matchMedia('(max-width: 640px)').matches;
   }
 
   function initScene() {
     var svg = $('#citySvg');
     if (!svg) return null;
-    CityScene.build(svg, t(S.settings.logoText));
+    var hero = $('.hero');
+    CityScene.build(svg, { sign: t(S.settings.logoText), lite: isLite() });
     var fitT;
     window.addEventListener('resize', function () {
       clearTimeout(fitT);
       fitT = setTimeout(function () { CityScene.fit(svg); }, 100);
     });
+    // إيقاف الحركات المستمرة (الكرين، العربيات، الغبار) لما المشهد يخرج من الشاشة
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        hero.classList.toggle('is-offscreen', !entries[0].isIntersecting);
+      }).observe(hero);
+    }
     if (!hasGsap()) {
       svg.classList.add('scene-static');
-      updateHud(1);
+      updateCaption(1);
       return null;
     }
-    var tl = CityScene.timeline(svg, updateHud);
+    var tl = CityScene.timeline(svg, updateCaption);
     ScrollTrigger.create({
-      trigger: '.hero',
+      trigger: hero,
       start: 'top top',
-      end: function () { return '+=' + Math.round(window.innerHeight * 5); },
+      end: function () { return '+=' + Math.round(window.innerHeight * 6); },
       pin: true,
       scrub: 1,
       animation: tl,
       anticipatePin: 1,
       onRefresh: function () {
         CityScene.fit(svg);
-        hud.pct = hud.phase = hud.floors = null;
-        updateHud(tl.progress());
+        cap.sig = null;
+        updateCaption(tl.progress());
       }
     });
-    updateHud(0);
+    updateCaption(0);
     return tl;
   }
 

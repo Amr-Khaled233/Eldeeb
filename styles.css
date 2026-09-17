@@ -288,91 +288,131 @@ body:not(.is-loading) .loader { opacity: 0; visibility: hidden; }
 }
 @keyframes wheel { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(12px); } }
 
+/* ---------- عنوان المرحلة فوق المشهد ---------- */
+.scene-caption {
+  position: absolute; z-index: 2; left: 50%; top: calc(var(--header-h) + clamp(16px, 4vh, 44px));
+  width: min(92%, 760px); transform: translateX(-50%); text-align: center; pointer-events: none;
+  display: grid; justify-items: center; gap: 6px; transition: opacity .35s var(--ease), transform .35s var(--ease);
+}
+.scene-caption.is-out { opacity: 0; transform: translate(-50%, 10px); }
+.cap-eyebrow {
+  padding: 3px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; color: var(--accent-text);
+  background: color-mix(in srgb, var(--bg) 70%, transparent); border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent);
+  backdrop-filter: blur(6px);
+}
+.cap-eyebrow:empty { display: none; }
+.cap-title {
+  font-size: clamp(24px, 3.4vw, 46px); font-weight: 700; line-height: var(--h-lh); color: var(--text);
+  text-shadow: 0 2px 18px color-mix(in srgb, var(--bg) 85%, transparent), 0 0 2px color-mix(in srgb, var(--bg) 60%, transparent);
+}
+.cap-sub {
+  direction: ltr; unicode-bidi: isolate;
+  font-size: clamp(14px, 1.3vw, 17px); font-weight: 600; color: var(--muted);
+  text-shadow: 0 1px 10px color-mix(in srgb, var(--bg) 90%, transparent);
+}
+.hero-scene { contain: layout paint; }
+.hero.is-offscreen .hero-scene * { animation-play-state: paused !important; }
+
 /* ---------- عناصر المشهد ---------- */
-.sc-grid { fill: none; stroke: var(--sc-grid); stroke-width: 1; }
-.sc-gold { fill: url(#gGold); }
-.sc-gold-edge { fill: var(--primary); opacity: .9; }
-.sc-gold-line { stroke: var(--primary); stroke-width: 2; fill: none; }
 .sc-dusk { fill: var(--sc-dusk); fill-opacity: var(--sc-dusk-max); }
 .sc-stars circle { fill: #fff; fill-opacity: var(--sc-star); }
 .sc-stars .twinkle { animation: twinkle 2.6s ease-in-out infinite; }
 @keyframes twinkle { 50% { opacity: .2; } }
-.sc-sun-core { stop-color: #fff3cf; }
-.sc-sun-mid { stop-color: #f0c860; stop-opacity: .85; }
-.sc-sun-edge { stop-color: #C89D2A; stop-opacity: 0; }
 .sc-clouds path { fill: var(--sc-cloud); }
-/* أبراج */
-.sc-face-a { stop-color: var(--sc-face-a); }
-.sc-face-b { stop-color: var(--sc-face-b); }
-.sc-side { fill: var(--sc-side); }
-.sc-top { fill: var(--sc-top); }
 .sc-tw-back { fill: var(--sc-tw-back); }
-.sc-haze-0 { stop-color: var(--sc-haze); stop-opacity: 0; }
-.sc-haze-1 { stop-color: var(--sc-haze); stop-opacity: .75; }
-.sc-win { fill: var(--sc-win); }
-.sc-win-side { fill: var(--sc-win); opacity: .75; }
 .sc-win-b { fill: var(--sc-win-b); }
 .sc-litwin { fill: #ffd98a; }
-.sc-litwin-2 { fill: #fff0c2; }
-.sc-lit { opacity: 0; }
-.sc-cap { fill: var(--sc-top); }
-.sc-steel { stroke: #aab2b9; stroke-width: 2; fill: none; }
-.sc-beacon { fill: #ef4444; animation: blink 1.4s steps(2, jump-none) infinite; }
-@keyframes blink { 50% { opacity: .15; } }
+.sc-haze-0 { stop-color: var(--sc-haze); stop-opacity: 0; }
+.sc-haze-1 { stop-color: var(--sc-haze); stop-opacity: .8; }
 /* الأرض */
 .sc-soil { fill: var(--sc-soil); }
 .sc-walk { fill: var(--sc-walk); }
 .sc-road { fill: var(--sc-road); }
-.sc-road-sheen { fill: url(#gGlow); opacity: .05; }
 .sc-lane { stroke: var(--sc-lane); stroke-width: 2; }
-.sc-ground-line { stroke: var(--primary); stroke-width: 1.5; opacity: .7; }
 .sc-plaza { fill: var(--sc-plaza); }
-.sc-pave-line { stroke: rgba(0,0,0,.18); stroke-width: 1; fill: none; }
-.sc-fence { fill: #0D1B2A; stroke: rgba(200,157,42,.5); stroke-width: 1; }
-/* البرج الرئيسي */
-.sc-footing { fill: #4d5963; }
-.sc-podium { fill: #7c858d; }
-.sc-column { opacity: .95; }
-.sc-slab { fill: #b3b9bf; }
-.sc-slab-edge { fill: #6c757d; }
-.sc-slab-top { fill: #c9ced3; }
-.sc-slab-side { fill: #7f878f; }
-.sc-cur-a { stop-color: var(--sc-cur-a); }
-.sc-cur-b { stop-color: var(--sc-cur-b); }
-.sc-cur-c { stop-color: var(--sc-cur-c); }
-.sc-cur-d { stop-color: var(--sc-cur-d); }
-.sc-side-a { stop-color: var(--sc-side-a); }
-.sc-side-b { stop-color: var(--sc-side-b); }
-.sc-glass { stroke: rgba(8, 16, 26, .7); stroke-width: 1; }
-.sc-mullion { stroke: rgba(8, 16, 26, .55); stroke-width: 1.2; fill: none; }
-.sc-spandrel { stroke: var(--primary); stroke-width: 1.6; fill: none; opacity: .85; }
-.sc-side-lines { stroke: rgba(200,157,42,.6); stroke-width: 1.2; fill: none; }
-.sc-mainlit { fill: #ffd98a; opacity: 0; mix-blend-mode: screen; }
-.sc-lobby-door { fill: rgba(13,27,42,.35); }
-.sc-crown { fill: var(--sc-crown); }
-.sc-fins { stroke: url(#gGoldH); stroke-width: 3; }
-.sc-sign { fill: var(--primary); font: 800 15px var(--font); letter-spacing: .06em; }
-.sc-ghost rect, .sc-ghost path { fill: none; stroke: var(--primary); stroke-width: 1.2; stroke-dasharray: 6 6; opacity: .6; }
-.sc-shine { animation: shine 5.5s ease-in-out infinite; }
-@keyframes shine { 0% { transform: skewX(-18deg) translateX(0); } 60%, 100% { transform: skewX(-18deg) translateX(620px); } }
-.sc-beam { mix-blend-mode: screen; transform-box: view-box; }
-.sc-beam-a { transform-origin: 0px 300px; animation: beamA 7s ease-in-out infinite alternate; }
-.sc-beam-b { transform-origin: 0px 300px; animation: beamB 8s ease-in-out infinite alternate; }
-@keyframes beamA { from { transform: rotate(-14deg); } to { transform: rotate(18deg); } }
-@keyframes beamB { from { transform: rotate(16deg); } to { transform: rotate(-20deg); } }
-.sc-spark circle { fill: #fff3b0; }
-.sc-spark path { stroke: #ffc84a; stroke-width: 1.6; stroke-linecap: round; }
-.sc-spark { animation: spark .5s steps(2, jump-none) infinite; }
-@keyframes spark { 50% { opacity: .1; } }
-/* الشارع */
-.sc-pole { stroke: #7c8791; stroke-width: 3; fill: none; }
-.sc-lamp-glow, .sc-lamp-pool { opacity: 0; }
-.sc-lamp-pool { fill: #ffd98a; fill-opacity: .22; }
-.sc-trunk { fill: #5b4636; }
-.sc-leaf { fill: #2f7a4b; }
-.sc-leaf-2 { fill: #3f9660; }
-.sc-palm-trunk { stroke: #8a6a45; stroke-width: 5; fill: none; stroke-linecap: round; }
-.sc-palm-leaf { stroke: #3d8c55; stroke-width: 4; fill: none; stroke-linecap: round; }
+.sc-pave-line { stroke: rgba(0,0,0,.16); stroke-width: 1; fill: none; }
+.sc-gold-line { stroke: var(--primary); stroke-width: 2; fill: none; }
+.sc-pit { fill: #2a1f17; stroke: #6b523b; stroke-width: 1.5; }
+.sc-dirt { fill: #6b5540; }
+.sc-dirt-edge { stroke: #8a6e52; stroke-width: 2; }
+.sc-pile { fill: #8b6d4f; }
+.sc-pile-2 { fill: #a3835f; }
+.sc-rebar { stroke: #b0643a; stroke-width: 1.6; fill: none; }
+.sc-rebar-thin { stroke: #b0643a; stroke-width: 1; fill: none; }
+.sc-rebar-bold { stroke: #b0643a; stroke-width: 2.4; fill: none; stroke-linecap: round; }
+.sc-concrete-top { stroke: #c4c9cd; stroke-width: 2; }
+.sc-podium { fill: #8e959b; }
+/* المبنى */
+.sc-col-back { fill: #5c646b; }
+.sc-cage { stroke: #b0643a; stroke-width: 1.2; }
+.sc-slab { fill: #b7bdc2; }
+.sc-slab-top { fill: #cfd4d8; }
+.sc-slab-side { fill: #7c848b; }
+.sc-side-lines { stroke: rgba(200,157,42,.55); stroke-width: 1.2; fill: none; }
+.sc-glass { stroke: rgba(10, 20, 32, .75); stroke-width: 1; }
+.sc-mullion { stroke: rgba(10, 20, 32, .6); stroke-width: 1.2; fill: none; }
+.sc-glint { stroke: #fff; stroke-opacity: .35; stroke-width: 1.4; fill: none; }
+.sc-spandrel { stroke: var(--primary); stroke-width: 1.6; fill: none; opacity: .9; }
+.sc-winlight { fill: #ffd98a; opacity: 0; mix-blend-mode: screen; }
+.sc-door { fill: rgba(13, 27, 42, .45); }
+.sc-parapet { fill: #243649; }
+.sc-penthouse { fill: #1b2c3e; }
+.sc-side-dark { fill: #0f1c2b; }
+.sc-sign { fill: var(--primary); font: 800 14px var(--font); letter-spacing: .05em; }
+.sc-antenna { stroke: #aeb6bd; stroke-width: 2.4; }
+.sc-beacon { fill: #ef4444; animation: blink 1.4s steps(2, jump-none) infinite; }
+@keyframes blink { 50% { opacity: .15; } }
+/* السقالات */
+.sc-scaf { stroke: #b8bec4; stroke-width: 1.5; fill: none; }
+.sc-scaf-thin { stroke: #9aa2a9; stroke-width: 1; fill: none; }
+.sc-mesh { stroke: #3d8c55; stroke-width: .6; opacity: .45; }
+.sc-plank { fill: #c08a3e; }
+/* المخزن والمعدات */
+.sc-block { fill: #b9b2a6; stroke: #8c857a; stroke-width: .6; }
+.sc-crate { fill: #6b4f32; stroke: #4a3620; stroke-width: 1; }
+.sc-crate-line { stroke: #4a3620; stroke-width: 1; }
+.sc-track { fill: #2a2d31; }
+.sc-wheel-2 { fill: #50555b; }
+.sc-counterweight { fill: #3a3f45; }
+.sc-cab-glass { fill: #9fc3dd; opacity: .85; }
+.sc-hydraulic { stroke: #d9dde1; stroke-width: 2.4; stroke-linecap: round; }
+.sc-bucket { fill: #3a3f45; }
+.sc-teeth { stroke: #3a3f45; stroke-width: 1.6; }
+.sc-chassis { fill: #2d3640; }
+.sc-drum { fill: #d8dce0; stroke: #8e979f; stroke-width: 2; }
+.sc-drum-stripe { stroke: #C89D2A; stroke-width: 4; fill: none; }
+.sc-cab-truck { fill: #C89D2A; }
+.sc-chute { stroke: #7c848b; stroke-width: 5; fill: none; stroke-linecap: round; }
+.sc-stream { stroke: #8f969c; stroke-width: 6; fill: none; stroke-linecap: round; stroke-dasharray: 6 4; animation: pour .5s linear infinite; }
+@keyframes pour { to { stroke-dashoffset: -20; } }
+/* الكرين */
+.sc-crane-base { fill: #3b434b; }
+.sc-crane-steel { fill: none; stroke: var(--primary); stroke-width: 2; stroke-linejoin: round; }
+.sc-crane-body { fill: #C89D2A; }
+.sc-crane-weight { fill: #3b434b; }
+.sc-crane-cab { fill: #1d2a37; stroke: var(--primary); stroke-width: 1.5; }
+.sc-cable { stroke: #9aa3ab; stroke-width: 1; fill: none; }
+.sc-hook { stroke: #d0d5da; stroke-width: 2.4; fill: none; }
+.sc-formwork { fill: #b98848; stroke: #7d5a2b; stroke-width: 1; }
+.sc-concrete-bucket { fill: #7c848b; stroke: #4e555b; stroke-width: 1; }
+.sc-sway { transform-box: view-box; transform-origin: -330px 294px; animation: sway 6s ease-in-out infinite alternate; }
+@keyframes sway { from { transform: rotate(-.35deg); } to { transform: rotate(.35deg); } }
+.sc-swing { transform-box: view-box; transform-origin: 0 0; animation: swing 2.8s ease-in-out infinite alternate; }
+@keyframes swing { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+/* الناس والعربيات */
+.sc-legs { stroke: #2d3640; stroke-width: 2; stroke-linecap: round; }
+.sc-arms { stroke: #e0a36c; stroke-width: 1.6; stroke-linecap: round; }
+.sc-vest { fill: #f97316; }
+.sc-skin { fill: #e0a36c; }
+.sc-hat { fill: #facc15; }
+.sc-shirt { fill: #3b6ea8; }
+.sc-hair { fill: #2b1d14; }
+.p2 .sc-shirt { fill: #C89D2A; }
+.p3 .sc-shirt { fill: #e2e6ea; }
+.p4 .sc-shirt { fill: #8b3a3a; }
+.walker { animation: walk 7s ease-in-out infinite alternate; }
+.walker.idle { animation: none; }
+@keyframes walk { from { transform: translateX(0); } to { transform: translateX(var(--walk, 20px)); } }
 .sc-car { animation: drive 18s linear infinite; }
 @keyframes drive { from { transform: translateX(-2600px); } to { transform: translateX(2600px); } }
 .sc-car-body.c1, .sc-car-cab.c1 { fill: #C89D2A; }
@@ -381,28 +421,38 @@ body:not(.is-loading) .loader { opacity: 0; visibility: hidden; }
 .sc-car-body.c4, .sc-car-cab.c4 { fill: #3b6ea8; }
 .sc-car-body.c5, .sc-car-cab.c5 { fill: #8d959e; }
 .sc-car-win { fill: #9fc3dd; opacity: .8; }
-.sc-car-reflect { fill: #fff; opacity: .05; }
 .sc-wheel { fill: #0b0f14; }
 .sc-headlight { fill: #fff6d5; }
 .sc-taillight { fill: #ff4d4d; }
 .sc-beam-car { fill: #fff3c4; opacity: .14; }
-.sc-chassis { fill: #2d3640; }
-.sc-drum { fill: #d8dce0; stroke: #8e979f; stroke-width: 2; }
-.sc-drum-stripe { stroke: #C89D2A; stroke-width: 4; fill: none; }
-.sc-cab-truck { fill: #C89D2A; }
-.sc-crane-steel { fill: none; stroke: var(--primary); stroke-width: 2; stroke-linejoin: round; }
-.sc-crane-weight { fill: #36424e; }
-.sc-crane-cab { fill: #1d2a37; stroke: var(--primary); stroke-width: 1.5; }
-.sc-cable { stroke: #9aa3ab; stroke-width: 1; fill: none; }
-.sc-hook { stroke: #c7ccd1; stroke-width: 2.4; fill: none; }
+.sc-pole { stroke: #7c8791; stroke-width: 3; fill: none; }
+.sc-lamp-glow, .sc-lamp-pool { opacity: 0; }
+.sc-lamp-pool { fill: #ffd98a; fill-opacity: .22; }
+.sc-trunk { fill: #5b4636; }
+.sc-leaf { fill: #2f7a4b; }
+.sc-leaf-2 { fill: #3f9660; }
+.sc-planter { fill: #3b434b; }
+.sc-palm-trunk { stroke: #8a6a45; stroke-width: 5; fill: none; stroke-linecap: round; }
+.sc-palm-leaf { stroke: #3d8c55; stroke-width: 4; fill: none; stroke-linecap: round; }
+.sc-particle { transform-box: fill-box; transform-origin: center; animation: dust 4s ease-out infinite; }
+@keyframes dust {
+  0% { transform: translate(0, 0) scale(.5); opacity: 0; }
+  30% { opacity: .9; }
+  100% { transform: translate(24px, -70px) scale(1.7); opacity: 0; }
+}
+.sc-fence { fill: #0D1B2A; stroke: rgba(200,157,42,.45); stroke-width: 1; }
+.sc-board { fill: #0D1B2A; stroke: rgba(200,157,42,.6); stroke-width: 1.5; }
+.sc-board-sub { fill: #aeb6bd; font: 600 7px var(--font-en), sans-serif; letter-spacing: .08em; }
 
-/* المشهد بدون أنيميشن: البرج الرئيسي مكتمل ومضاء */
-.scene-static #sparks, .scene-static #truck, .scene-static #fence, .scene-static #bpGrid, .scene-static #dust,
-.scene-static #b0, .scene-static #b1, .scene-static #b2, .scene-static .fset:not([data-set="3"]) { display: none; }
-.scene-static .sc-lit, .scene-static .sc-mainlit, .scene-static .sc-lamp-glow, .scene-static .sc-lamp-pool { opacity: 1; }
-.scene-static #hookLoad, .scene-static .sc-slab-top, .scene-static .sc-slab-side { opacity: 0; }
-.scene-static #b3 .sc-slab { fill: #1f3246; }
-.scene-static #b3 .sc-column { fill: #1a2b3d; }
+/* بدون أنيميشن (تقليل الحركة): المبنى مكتمل ومضاء */
+.scene-static #excavator, .scene-static #truck, .scene-static #chute, .scene-static #dust, .scene-static #rebarV,
+.scene-static #rebarH, .scene-static #starters, .scene-static #cages, .scene-static #scaffold, .scene-static #crane,
+.scene-static #fence, .scene-static #yard, .scene-static #groundCrew, .scene-static #slabCrew, .scene-static #pile,
+.scene-static #sun, .scene-static #site, .scene-static #pit, .scene-static .sc-slab-top, .scene-static .sc-slab-side { display: none; }
+.scene-static .sc-winlight, .scene-static .sc-lamp-glow, .scene-static .sc-lamp-pool { opacity: 1; }
+.scene-static .sc-slab { fill: #1d3044; }
+.scene-static .sc-col { fill: #1a2b3d; }
+.scene-static #shadow { opacity: .25; }
 
 /* ---------- مقدمة الشركة (تحت مشهد البناء) ---------- */
 .hero-intro { padding-block: clamp(70px, 9vw, 120px); }

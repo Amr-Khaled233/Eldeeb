@@ -1,45 +1,32 @@
 /* =========================================================
-   CityScene: عرض مشاريع يُبنى مع السكرول (الهيرو)
-   تتابع مبانٍ مختلفة في نفس الموقع:
-   عمارة سكنية ← برج إداري ← برجان توأم ← برج الديب الرئيسي
-   كل مبنى يُبنى بالرافعة ثم يختفي في الأرض ليظهر التالي،
-   والأبراج حوله تظهر وتختفي معه.
-   الإحداثيات: الأرض عند y = 900، والموقع في منتصف x = 0
+   CityScene: محاكاة واقعية لبناء مبنى مع السكرول (SVG + GSAP)
+   المراحل:
+   1) حفر الأساسات بالحفار   2) حديد التسليح وصب الخرسانة
+   3) الأعمدة واحدًا واحدًا   4) الطوابق مع السقالات
+   5) الواجهة الزجاجية لوحًا لوحًا   6) فك السقالات والكرين + لاندسكيب + إضاءة ليلية
+   الإحداثيات: الأرض y = 900، والمبنى في منتصف x = 0، والضوء من اليسار
    ========================================================= */
 (function (global) {
   'use strict';
 
   var G = 900;
-  var PODIUM = 888;
-  var PICK = { tx: 150, hy: 180 };
-  var ORIGIN = '0 1010';
-  var FLOORS = 12;
+  var L = -150, R = 150;
+  var D = 46, DY = 20;                    // عمق جانب المبنى (يمين)
+  var LOBBY = 844, FH = 44, FLOORS = 8;
+  var ROOF = LOBBY - FLOORS * FH;         // 492
+  var COLS = [-150, -90, -30, 30, 90, 150];
+  var COLH = G - ROOF;
+  var MAST = -330, JIB_Y = 294, YARD = 292, TOP_Y = 330;
 
-  var BUILDINGS = [
-    { id: 'b0', style: 'res', towers: [{ x: 0, w: 240, floors: 5, fh: 46, bays: 4 }], win: [2, 20], out: [21, 25], set: 0 },
-    { id: 'b1', style: 'office', towers: [{ x: 0, w: 200, floors: 11, fh: 40, bays: 4 }], win: [26, 45], out: [46, 50], set: 1 },
-    { id: 'b2', style: 'twin', towers: [{ x: -78, w: 112, floors: 13, fh: 38, bays: 2 }, { x: 78, w: 112, floors: 13, fh: 38, bays: 2 }], win: [51, 70], out: [71, 75], set: 2 },
-    { id: 'b3', style: 'flag', towers: [{ x: 0, w: 256, floors: 12, fh: 41, bays: 4 }], win: [76, 96], set: 3 }
+  // بدايات المراحل على مقياس 0..100 (تُستخدم للعناوين)
+  var PHASES = [
+    { key: 'intro', at: 0 }, { key: 'about', at: 31 }, { key: 'services', at: 43 },
+    { key: 'projects', at: 69 }, { key: 'final', at: 85 }
   ];
+  var FLOOR_START = 44, FLOOR_STEP = 3;
 
-  var SETS = [
-    [{ x: -360, w: 120, h: 260, style: 'flat' }, { x: 380, w: 140, h: 300, style: 'crown' }, { x: -620, w: 150, h: 340, style: 'slant' }, { x: 640, w: 130, h: 280, style: 'flat' }],
-    [{ x: -380, w: 130, h: 470, style: 'step' }, { x: 400, w: 120, h: 520, style: 'spire' }, { x: -660, w: 120, h: 420, style: 'crown' }, { x: 680, w: 150, h: 450, style: 'slant' }],
-    [{ x: -400, w: 140, h: 560, style: 'spire' }, { x: 430, w: 150, h: 600, style: 'step', crane: true }, { x: -700, w: 130, h: 500, style: 'flat', crane: true }, { x: 720, w: 120, h: 480, style: 'crown' }],
-    [{ x: -390, w: 120, h: 380, style: 'crown' }, { x: 360, w: 130, h: 470, style: 'flat' }, { x: -600, w: 150, h: 600, style: 'step' },
-      { x: 590, w: 160, h: 660, style: 'spire' }, { x: -850, w: 130, h: 460, style: 'slant' }, { x: 840, w: 120, h: 420, style: 'crown' },
-      { x: -1090, w: 130, h: 520, style: 'flat', crane: true }, { x: 1080, w: 150, h: 560, style: 'step' }, { x: -1350, w: 140, h: 430, style: 'spire' }, { x: 1340, w: 130, h: 380, style: 'slant' }]
-  ];
-
-  var BACK = [
-    [-1560, 110, 430], [-1330, 100, 350], [-1140, 120, 500], [-960, 90, 600], [-740, 110, 330],
-    [-470, 80, 470], [-270, 90, 380], [300, 90, 420], [470, 100, 330], [700, 90, 560], [930, 110, 360],
-    [1190, 100, 470], [1420, 120, 330], [1640, 110, 520]
-  ];
-  var LAMPS = [-1540, -1280, -1020, -760, -500, -250, 290, 540, 800, 1060, 1320, 1580];
-  var PALMS = [-235, -190, 250, 300];
-  var TREES = [-1410, -1150, -890, -630, 670, 930, 1190, 1450];
-
+  function ceil(k) { return LOBBY - k * FH; }
+  function frac(y) { return (G - y) / COLH; }
   function rng(seed) {
     return function () { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
   }
@@ -49,186 +36,287 @@
   function p(d, cls, extra) {
     return '<path d="' + d + '"' + (cls ? ' class="' + cls + '"' : '') + (extra || '') + '/>';
   }
+  function g(id, inner, cls, extra) {
+    return '<g' + (id ? ' id="' + id + '"' : '') + (cls ? ' class="' + cls + '"' : '') + (extra || '') + '>' + inner + '</g>';
+  }
   function grad(id, x2, y2, stops) {
     return '<linearGradient id="' + id + '" x1="0" y1="0" x2="' + x2 + '" y2="' + y2 + '">' +
       stops.map(function (s) { return '<stop offset="' + s[0] + '" ' + s[1] + '/>'; }).join('') + '</linearGradient>';
   }
+  function side(x, y, h, cls, extra) {   // وجه جانبي متوازي أضلاع
+    return p('M' + x + ' ' + y + 'l' + D + ' ' + (-DY) + 'v' + (-h) + 'l' + (-D) + ' ' + DY + 'z', cls, extra);
+  }
 
   /* ---------------- التعريفات ---------------- */
   function defs() {
-    var ang = (Math.atan(0.45) * 180 / Math.PI).toFixed(1);
-    function winPat(id, w, h, cls, skew) {
-      return '<pattern id="' + id + '" width="' + w + '" height="' + h + '" patternUnits="userSpaceOnUse"' + (skew ? ' patternTransform="skewY(' + skew + ')"' : '') + '>' +
-        '<rect x="' + Math.round(w * 0.2) + '" y="' + Math.round(h * 0.2) + '" width="' + Math.round(w * 0.6) + '" height="' + Math.round(h * 0.6) + '" class="' + cls + '"/></pattern>';
-    }
-    function litPat(id, w, h, skew) {
-      var a = Math.round(w * 0.2), b = Math.round(h * 0.2), cw = Math.round(w * 0.6), ch = Math.round(h * 0.6);
-      return '<pattern id="' + id + '" width="' + (w * 4) + '" height="' + (h * 3) + '" patternUnits="userSpaceOnUse"' + (skew ? ' patternTransform="skewY(' + skew + ')"' : '') + '>' +
-        [[0, 0], [2, 1], [1, 2], [3, 0], [3, 2]].map(function (c, i) {
-          return '<rect x="' + (c[0] * w + a) + '" y="' + (c[1] * h + b) + '" width="' + cw + '" height="' + ch + '" class="sc-litwin' + (i % 2 ? ' sc-litwin-2' : '') + '"/>';
-        }).join('') + '</pattern>';
-    }
-    // واجهة البرج الرئيسي للمعة الزجاج
-    var ft = BUILDINGS[3].towers[0];
-    var fTop = PODIUM - ft.floors * ft.fh;
     return '<defs>' +
-      '<pattern id="pGrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" class="sc-grid"/></pattern>' +
-      '<pattern id="pHaz" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="14" class="sc-gold"/></pattern>' +
+      '<pattern id="pWinB" width="12" height="16" patternUnits="userSpaceOnUse"><rect x="3" y="4" width="6" height="8" class="sc-win-b"/></pattern>' +
+      '<pattern id="pLitB" width="36" height="48" patternUnits="userSpaceOnUse"><rect x="3" y="4" width="6" height="8" class="sc-litwin"/><rect x="27" y="20" width="6" height="8" class="sc-litwin"/><rect x="15" y="36" width="6" height="8" class="sc-litwin"/></pattern>' +
+      '<pattern id="pHaz" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="12" fill="#C89D2A"/></pattern>' +
+      '<pattern id="pTies" width="10" height="11" patternUnits="userSpaceOnUse"><path d="M0 1h10" class="sc-rebar-thin"/></pattern>' +
+      '<pattern id="pMesh" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M0 0l6 6M6 0L0 6" class="sc-mesh"/></pattern>' +
       '<pattern id="pPave" width="24" height="12" patternUnits="userSpaceOnUse"><path d="M0 12h24M12 0v12" class="sc-pave-line"/></pattern>' +
-      winPat('pWin', 16, 22, 'sc-win') + winPat('pWinR', 16, 22, 'sc-win-side', -ang) + winPat('pWinL', 16, 22, 'sc-win-side', ang) +
-      litPat('pLit', 16, 22) + litPat('pLitR', 16, 22, -ang) + litPat('pLitL', 16, 22, ang) +
-      winPat('pWinB', 12, 16, 'sc-win-b') + litPat('pLitB', 12, 16) +
-      grad('gCurtain', 0, 1, [[0, 'class="sc-cur-a"'], [0.45, 'class="sc-cur-b"'], [0.55, 'class="sc-cur-c"'], [1, 'class="sc-cur-d"']]) +
-      grad('gSideGlass', 1, 1, [[0, 'class="sc-side-a"'], [1, 'class="sc-side-b"']]) +
-      grad('gFace', 1, 0, [[0, 'class="sc-face-a"'], [1, 'class="sc-face-b"']]) +
-      grad('gHaze', 0, 1, [[0, 'class="sc-haze-0"'], [1, 'class="sc-haze-1"']]) +
-      grad('gSteel', 1, 0, [[0, 'stop-color="#6e7780"'], [0.5, 'stop-color="#e3e7ea"'], [1, 'stop-color="#6e7780"']]) +
+      grad('gGlass', 0.35, 1, [[0, 'stop-color="#d9eaf6"'], [0.28, 'stop-color="#8fb0c9"'], [0.62, 'stop-color="#3d5d7a"'], [1, 'stop-color="#1d3349"']]) +
+      grad('gGlassSide', 1, 1, [[0, 'stop-color="#5b7c97"'], [1, 'stop-color="#15263a"']]) +
+      grad('gReflect', 1, 0, [[0, 'stop-color="#fff" stop-opacity="0"'], [0.3, 'stop-color="#fff" stop-opacity=".22"'], [0.42, 'stop-color="#fff" stop-opacity="0"'], [0.62, 'stop-color="#fff" stop-opacity=".14"'], [0.7, 'stop-color="#fff" stop-opacity="0"']]) +
+      grad('gConcrete', 1, 0, [[0, 'stop-color="#b9bec3"'], [1, 'stop-color="#8b9197"']]) +
+      grad('gConcreteV', 0, 1, [[0, 'stop-color="#a9aeb3"'], [1, 'stop-color="#6f757b"']]) +
+      grad('gWall', 0, 1, [[0, 'stop-color="#7d858d"'], [1, 'stop-color="#5a6168"']]) +
       grad('gGold', 0, 1, [[0, 'stop-color="#f3d98a"'], [0.5, 'stop-color="#C89D2A"'], [1, 'stop-color="#8a6810"']]) +
       grad('gGoldH', 1, 0, [[0, 'stop-color="#8a6810"'], [0.5, 'stop-color="#f3d98a"'], [1, 'stop-color="#8a6810"']]) +
-      grad('gConcrete', 0, 1, [[0, 'stop-color="#a3aab1"'], [1, 'stop-color="#6a7178"']]) +
-      grad('gWhite', 1, 0, [[0, 'stop-color="#eef0f2"'], [1, 'stop-color="#c3c9cf"']]) +
-      grad('gLobby', 0, 1, [[0, 'stop-color="#fff3cf"'], [1, 'stop-color="#e2b04a"']]) +
-      grad('gBeam', 0, 1, [[0, 'stop-color="#ffe6a0" stop-opacity="0"'], [1, 'stop-color="#ffd76a" stop-opacity=".55"']]) +
-      grad('gShine', 1, 0, [[0, 'stop-color="#fff" stop-opacity="0"'], [0.5, 'stop-color="#fff" stop-opacity=".55"'], [1, 'stop-color="#fff" stop-opacity="0"']]) +
-      '<radialGradient id="gSun"><stop offset="0" class="sc-sun-core"/><stop offset=".55" class="sc-sun-mid"/><stop offset="1" class="sc-sun-edge"/></radialGradient>' +
+      grad('gYellow', 0, 1, [[0, 'stop-color="#ffcf3f"'], [1, 'stop-color="#e0a100"']]) +
+      grad('gLobby', 0, 1, [[0, 'stop-color="#fff4d2"'], [1, 'stop-color="#e5b552"']]) +
+      grad('gShadow', 1, 0, [[0, 'stop-color="#000" stop-opacity=".42"'], [1, 'stop-color="#000" stop-opacity="0"']]) +
+      grad('gHaze', 0, 1, [[0, 'class="sc-haze-0"'], [1, 'class="sc-haze-1"']]) +
+      grad('gStream', 0, 1, [[0, 'stop-color="#9aa0a6"'], [1, 'stop-color="#6c7277"']]) +
+      '<radialGradient id="gSun"><stop offset="0" stop-color="#fff6d8"/><stop offset=".5" stop-color="#ffd87a" stop-opacity=".85"/><stop offset="1" stop-color="#ffb84a" stop-opacity="0"/></radialGradient>' +
+      '<radialGradient id="gMoon"><stop offset="0" stop-color="#f4f1e6"/><stop offset=".6" stop-color="#e7e2cf" stop-opacity=".9"/><stop offset="1" stop-color="#e7e2cf" stop-opacity="0"/></radialGradient>' +
       '<radialGradient id="gGlow"><stop offset="0" stop-color="#ffd98a" stop-opacity=".9"/><stop offset="1" stop-color="#ffd98a" stop-opacity="0"/></radialGradient>' +
-      '<radialGradient id="gDust"><stop offset="0" stop-color="#b9ada0" stop-opacity=".95"/><stop offset="1" stop-color="#8d8274" stop-opacity="0"/></radialGradient>' +
-      '<clipPath id="cGround"><rect x="-5000" y="-5000" width="10000" height="' + (5000 + G) + '"/></clipPath>' +
-      '<clipPath id="cFacade"><rect x="-128" y="' + fTop + '" width="256" height="' + (PODIUM - fTop) + '"/></clipPath>' +
+      '<radialGradient id="gDust"><stop offset="0" stop-color="#c9b89f" stop-opacity=".85"/><stop offset="1" stop-color="#a8977e" stop-opacity="0"/></radialGradient>' +
+      '<radialGradient id="gUp" cx=".5" cy="1" r="1"><stop offset="0" stop-color="#ffd98a" stop-opacity=".55"/><stop offset="1" stop-color="#ffd98a" stop-opacity="0"/></radialGradient>' +
+      // عامل بناء (حوالي 20 وحدة = 1.75م تقريبًا مقابل طابق 44 وحدة)
+      '<g id="gWorker">' + p('M-2.5 -8l-1.5 8M2.5 -8l1.5 8', 'sc-legs') + r(-3.5, -16, 7, 9, 'sc-vest', ' rx="1.5"') +
+      p('M-3.5 -14l-3 5M3.5 -14l3 4', 'sc-arms') + '<circle cx="0" cy="-19" r="2.6" class="sc-skin"/>' + p('M-3.6 -19.5a3.6 3.6 0 0 1 7.2 0z', 'sc-hat') + '</g>' +
+      '<g id="gPerson">' + p('M-2.2 -8l-1.3 8M2.2 -8l1.3 8', 'sc-legs') + r(-3, -16, 6, 9, 'sc-shirt', ' rx="2"') +
+      '<circle cx="0" cy="-19" r="2.6" class="sc-skin"/>' + p('M-2.8 -20.5a2.8 2.4 0 0 1 5.6 0z', 'sc-hair') + '</g>' +
+      '<clipPath id="cFacade"><rect x="' + L + '" y="' + ROOF + '" width="' + (R - L) + '" height="' + (LOBBY - ROOF) + '"/>' +
+      '<path d="M' + R + ' ' + LOBBY + 'l' + D + ' -' + DY + 'V' + (ROOF - DY) + 'l-' + D + ' ' + DY + 'z"/></clipPath>' +
       '</defs>';
   }
 
-  /* ---------------- السماء ---------------- */
-  function sky() {
-    var rand = rng(7);
-    var stars = '';
-    for (var i = 0; i < 120; i++) {
-      stars += '<circle cx="' + Math.round(rand() * 5000 - 2500) + '" cy="' + Math.round(rand() * 2600 - 2000) + '" r="' + (rand() * 1.4 + 0.4).toFixed(1) + '"' +
+  /* ---------------- السماء (أبطأ طبقة) ---------------- */
+  function sky(lite) {
+    var rand = rng(5), stars = '';
+    for (var i = 0; i < (lite ? 50 : 110); i++) {
+      stars += '<circle cx="' + Math.round(rand() * 4000 - 2000) + '" cy="' + Math.round(rand() * 1600 - 900) + '" r="' + (rand() * 1.3 + 0.4).toFixed(1) + '"' +
         (i % 4 === 0 ? ' class="twinkle" style="animation-delay:' + (rand() * 3).toFixed(1) + 's"' : '') + '/>';
     }
-    var clouds = [[-900, 160, 1.6], [-300, 60, 1.1], [420, 120, 1.4], [1000, 40, 1], [-1500, 30, 1.2], [1500, 150, 1.5], [-200, -200, 1.3], [600, -320, 1.1]].map(function (c) {
+    var clouds = [[-700, 150, 1.8], [-150, 70, 1.2], [380, 130, 1.6], [900, 60, 1.1], [-1300, 90, 1.4], [1400, 170, 1.5], [0, -180, 1.4]].map(function (c) {
       return '<path transform="translate(' + c[0] + ' ' + c[1] + ') scale(' + c[2] + ')" d="M0 40a26 26 0 0 1 48-12 20 20 0 0 1 34 16h-82z"/>';
     }).join('');
-    return '<rect id="dusk" class="sc-dusk" x="-5000" y="-5000" width="10000" height="10000"/>' +
-      '<g id="stars" class="sc-stars">' + stars + '</g>' +
-      '<circle id="sun" cx="-520" cy="200" r="70" fill="url(#gSun)"/>' +
-      '<g id="clouds" class="sc-clouds">' + clouds + '</g>';
+    return r(-5000, -5000, 10000, 10000, 'sc-dusk', ' id="dusk"') +
+      g('stars', stars, 'sc-stars') +
+      '<circle id="sun" cx="-560" cy="170" r="80" fill="url(#gSun)"/>' +
+      '<circle id="moon" cx="520" cy="140" r="38" fill="url(#gMoon)"/>' +
+      g('clouds', clouds, 'sc-clouds');
   }
 
-  /* ---------------- صندوق ثلاثي الأبعاد للأبراج المحيطة ---------------- */
-  function box(cx, w, base, h, sideRight, opt) {
-    opt = opt || {};
-    var l = cx - w / 2, rt = cx + w / 2, top = base - h;
-    var D = Math.max(12, Math.round(w * 0.24)), DY = Math.round(D * 0.45);
-    var sx = sideRight ? D : -D;
-    var ex = sideRight ? rt : l;
-    var side = 'M' + ex + ' ' + base + 'l' + sx + ' ' + (-DY) + 'V' + (top - DY) + 'l' + (-sx) + ' ' + DY + 'z';
-    var html = p(side, 'sc-side');
-    if (opt.windows) {
-      html += p(side, '', ' fill="url(#' + (sideRight ? 'pWinR' : 'pWinL') + ')"');
-      html += p(side, 'sc-lit', ' fill="url(#' + (sideRight ? 'pLitR' : 'pLitL') + ')"');
-    }
-    html += p('M' + l + ' ' + top + 'H' + rt + 'l' + sx + ' ' + (-DY) + 'H' + (l + sx) + 'z', 'sc-top');
-    html += r(l, top, w, h, 'sc-face', ' fill="url(#gFace)"');
-    if (opt.windows) {
-      html += r(l + 6, top + 12, w - 12, h - 18, '', ' fill="url(#pWin)"');
-      html += r(l + 6, top + 12, w - 12, h - 18, 'sc-lit', ' fill="url(#pLit)"');
-    }
-    return { html: html, top: top, l: l, rt: rt };
-  }
-
-  function roofCrane(x, y, flip) {
-    var s = flip ? -1 : 1;
-    return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ' 1)">' +
-      p('M-5 0V-96M5 0V-96M-5 -8L5 -24M5 -8L-5 -24M-5 -24L5 -40M5 -24L-5 -40M-5 -40L5 -56M5 -40L-5 -56M-5 -56L5 -72M5 -56L-5 -72M-5 -72L5 -88M5 -72L-5 -88', 'sc-crane-steel') +
-      p('M-120 -104H40M-120 -96H40M-120 -104V-96M-110 -96l6 -8 6 8 6 -8 6 8 6 -8 6 8 6 -8 6 8 6 -8 6 8 6 -8 6 8 6 -8 6 8 6 -8 6 8', 'sc-crane-steel') +
-      r(22, -112, 18, 16, 'sc-crane-weight') +
-      p('M0 -104V-126M0 -126L-120 -104M0 -126L40 -104M-80 -96V-40', 'sc-cable') +
-      r(-88, -40, 16, 5, 'sc-gold') + '</g>';
-  }
-
-  function sideTower(t) {
-    var sideRight = t.x < 0;
-    var b = box(t.x, t.w, G, t.h, sideRight, { windows: true });
-    var html = b.html + r(sideRight ? b.rt - 3 : b.l, b.top, 3, t.h, 'sc-gold-edge');
-    var roofY = b.top;
-    if (t.style === 'step') {
-      var s1 = box(t.x - (sideRight ? 8 : -8), t.w * 0.64, b.top, 60, sideRight, { windows: true });
-      var s2 = box(t.x - (sideRight ? 12 : -12), t.w * 0.34, s1.top, 40, sideRight);
-      html += s1.html + s2.html;
-      roofY = s2.top;
-      html += p('M' + t.x + ' ' + roofY + 'v-40', 'sc-steel') + '<circle class="sc-beacon" cx="' + t.x + '" cy="' + (roofY - 42) + '" r="3.5"/>';
-    } else if (t.style === 'spire') {
-      html += r(b.l + 6, b.top + 6, t.w - 12, 5, 'sc-gold');
-      html += p('M' + (t.x - 16) + ' ' + b.top + 'L' + t.x + ' ' + (b.top - 130) + 'L' + (t.x + 16) + ' ' + b.top + 'z', '', ' fill="url(#gSteel)"');
-      html += '<circle class="sc-beacon" cx="' + t.x + '" cy="' + (b.top - 134) + '" r="3.5"/>';
-    } else if (t.style === 'slant') {
-      var up = sideRight ? 'M' + b.l + ' ' + b.top + 'H' + b.rt + 'V' + (b.top - 70) + 'z' : 'M' + b.l + ' ' + b.top + 'H' + b.rt + 'L' + b.l + ' ' + (b.top - 70) + 'z';
-      html += p(up, 'sc-face', ' fill="url(#gFace)"') + p(up, '', ' fill="url(#pWin)"');
-      html += p(sideRight ? 'M' + b.l + ' ' + b.top + 'L' + b.rt + ' ' + (b.top - 70) : 'M' + b.rt + ' ' + b.top + 'L' + b.l + ' ' + (b.top - 70), 'sc-gold-line');
-      roofY = b.top - 70;
-    } else if (t.style === 'crown') {
-      for (var fx = b.l + 8; fx < b.rt - 4; fx += 10) html += r(fx, b.top - 26, 3, 26, 'sc-gold');
-      html += r(b.l, b.top - 30, t.w, 5, 'sc-gold');
-      roofY = b.top - 30;
-    } else {
-      html += r(b.l - 4, b.top - 6, t.w + 8, 6, 'sc-cap');
-      html += p('M' + (t.x + (sideRight ? -20 : 20)) + ' ' + b.top + 'v-36', 'sc-steel') + '<circle class="sc-beacon" cx="' + (t.x + (sideRight ? -20 : 20)) + '" cy="' + (b.top - 38) + '" r="3.5"/>';
-    }
-    if (t.crane) html += roofCrane(b.l + t.w * 0.7, roofY, t.x > 0);
-    return '<g class="rise" data-h="' + (t.h + 240) + '">' + html + '</g>';
-  }
-
-  function surroundings() {
-    var back = BACK.map(function (b) {
+  /* ---------------- المدينة البعيدة ---------------- */
+  var BACK = [[-1500, 110, 330], [-1300, 90, 260], [-1120, 120, 380], [-940, 90, 300], [-780, 110, 420], [-600, 80, 260],
+    [-430, 100, 200], [430, 110, 240], [600, 90, 360], [780, 120, 280], [960, 90, 440], [1140, 110, 300], [1330, 100, 380], [1520, 120, 280]];
+  function skyline() {
+    return BACK.map(function (b) {
       var l = b[0] - b[1] / 2, top = G - b[2];
-      return '<g class="back-t">' + r(l, top, b[1], b[2], 'sc-tw-back') +
+      return r(l, top, b[1], b[2], 'sc-tw-back') +
         r(l + 5, top + 10, b[1] - 10, b[2] - 16, '', ' fill="url(#pWinB)"') +
-        r(l + 5, top + 10, b[1] - 10, b[2] - 16, 'sc-lit', ' fill="url(#pLitB)"') +
-        r(l - 3, top - 4, b[1] + 6, 5, 'sc-tw-back') + '</g>';
-    }).join('');
-    var sets = SETS.map(function (set, i) {
-      return '<g class="fset" data-set="' + i + '">' + set.map(sideTower).join('') + '</g>';
-    }).join('');
-    return '<g id="backLayer">' + back + '</g>' +
-      r(-5000, 380, 10000, G - 380, '', ' fill="url(#gHaze)"') +
-      '<g clip-path="url(#cGround)"><g id="frontLayer">' + sets + '</g></g>';
+        r(l + 5, top + 10, b[1] - 10, b[2] - 16, 'sc-city-lit', ' fill="url(#pLitB)"') +
+        r(l - 3, top - 4, b[1] + 6, 5, 'sc-tw-back');
+    }).join('') + r(-5000, 420, 10000, G - 420, '', ' fill="url(#gHaze)"');
   }
 
-  /* ---------------- الأرض والشارع ---------------- */
+  /* ---------------- الأرض والحفرة والأساسات ---------------- */
   function ground() {
     var dashes = '';
     for (var x = -5000; x < 5000; x += 60) dashes += 'M' + x + ' 976h30';
-    var fence = '';
-    [[-330, -170], [200, 330]].forEach(function (seg) {
-      for (var fx = seg[0]; fx < seg[1]; fx += 32) fence += r(fx, 866, 30, 34, 'sc-fence') + r(fx, 884, 30, 4, 'sc-gold');
-    });
-    return '<g id="ground">' +
-      r(-5000, G, 10000, 3000, 'sc-soil') +
+    return r(-5000, G, 10000, 3000, 'sc-soil') +
       r(-5000, 936, 10000, 12, 'sc-walk') +
       r(-5000, 948, 10000, 56, 'sc-road') +
       p(dashes, 'sc-lane') +
-      p('M-5000 ' + G + 'H5000', 'sc-ground-line') +
       r(-5000, 1004, 10000, 6, 'sc-walk') +
-      '</g>' +
-      '<g id="plaza">' + r(-340, G, 680, 36, 'sc-plaza') + r(-340, G, 680, 36, '', ' fill="url(#pPave)"') +
-      p('M-340 918H340M-60 900v36M60 900v36', 'sc-gold-line') + '</g>' +
-      '<g id="fence">' + fence + '</g>';
+      g('plaza', r(-360, G, 720, 36, 'sc-plaza') + r(-360, G, 720, 36, '', ' fill="url(#pPave)"') +
+        p('M-360 918H360M-70 900v36M70 900v36', 'sc-gold-line'));
   }
 
-  function street() {
-    var lamps = LAMPS.map(function (x) {
+  function foundation() {
+    var rebarV = '', rebarH = '', starters = '';
+    for (var x = -166; x <= 166; x += 14) rebarV += 'M' + x + ' 906V932';
+    for (var y = 908; y <= 930; y += 7) rebarH += 'M-168 ' + y + 'H168';
+    COLS.forEach(function (c) { starters += 'M' + (c - 3) + ' 900v-18M' + (c + 3) + ' 900v-18'; });
+    return g('site', r(-560, G, 1000, 36, 'sc-dirt') + p('M-560 ' + (G + 1) + 'H440', 'sc-dirt-edge')) +
+      g('pit', p('M-182 900L-172 936H172L182 900Z', 'sc-pit')) +
+      g('pile', p('M-420 900q30-40 60-44q40-6 70 44z', 'sc-pile') + p('M-400 900q25-26 50-28q26 2 40 28z', 'sc-pile-2')) +
+      g('rebarV', p(rebarV, 'sc-rebar')) + g('rebarH', p(rebarH, 'sc-rebar')) +
+      g('concrete', r(-172, 903, 344, 33, '', ' fill="url(#gConcreteV)"') + p('M-172 903H172', 'sc-concrete-top')) +
+      g('podium', side(R + 20, G, 10, 'sc-slab-side') + r(L - 20, 890, R - L + 40, 10, 'sc-podium') + r(L - 20, 897, R - L + 40, 3, '', ' fill="url(#pHaz)"')) +
+      g('starters', p(starters, 'sc-rebar'));
+  }
+
+  /* ---------------- المبنى ---------------- */
+  function building(lite) {
+    var rand = rng(21);
+    var html = '';
+    // الظل (يطول مع ارتفاع المبنى)
+    html += r(R + D - 10, G, 240, 36, '', ' id="shadow" fill="url(#gShadow)"');
+    // الجانب والعمود الخلفي
+    html += g('sideWall', side(R, G, COLH, '', ' fill="url(#gWall)"') + r(R + D - 5, ROOF - DY, 8, COLH, 'sc-col-back'));
+    var sideLines = '';
+    for (var k = 1; k <= FLOORS; k++) sideLines += 'M' + R + ' ' + (ceil(k) + 8) + 'l' + D + ' -' + DY;
+    html += g('sideGlass', side(R, LOBBY, LOBBY - ROOF, '', ' fill="url(#gGlassSide)"') + p(sideLines, 'sc-side-lines'));
+    // حديد الأعمدة
+    html += g('cages', COLS.map(function (c, i) {
+      return r(c - 5, ROOF - 10, 10, COLH + 10, 'sc-cage', ' fill="url(#pTies)" data-i="' + i + '"');
+    }).join(''));
+    // الأعمدة
+    html += g('columns', COLS.map(function (c, i) {
+      return r(c - 6, ROOF, 12, COLH, 'sc-col', ' fill="url(#gConcrete)" data-i="' + i + '"');
+    }).join(''));
+    // اللوبي
+    var lobbyGlass = '';
+    for (var j = 0; j < COLS.length - 1; j++) lobbyGlass += r(COLS[j] + 6, LOBBY + 8, 48, G - LOBBY - 18, '', ' fill="url(#gLobby)"');
+    html += g('lobby', lobbyGlass + r(-24, 862, 48, 28, 'sc-door') + p('M0 862v28', 'sc-mullion'));
+    // الواجهة الزجاجية
+    var panes = '', lights = '', spand = '';
+    for (var f = 1; f <= FLOORS; f++) {
+      var top = ceil(f) + 8, h = FH - 8;
+      spand += 'M' + L + ' ' + (ceil(f) + 8) + 'H' + R;
+      for (var b = 0; b < COLS.length - 1; b++) {
+        var x = COLS[b] + 6;
+        panes += g('', r(x, top, 48, h, 'sc-glass', ' fill="url(#gGlass)"') +
+          p('M' + (x + 24) + ' ' + top + 'v' + h, 'sc-mullion') +
+          p('M' + (x + 4) + ' ' + (top + h - 4) + 'L' + (x + 16) + ' ' + (top + 3), 'sc-glint'), 'pane', ' data-f="' + f + '"');
+        if (rand() < 0.55) lights += r(x + 1, top + 1, 46, h - 2, 'sc-winlight');
+      }
+    }
+    html += g('panes', panes);
+    html += '<g clip-path="url(#cFacade)">' + r(-420, ROOF - 30, 340, LOBBY - ROOF + 60, '', ' id="reflect" fill="url(#gReflect)"') + '</g>';
+    html += g('spandrels', p(spand, 'sc-spandrel'));
+    html += g('winLights', lights);
+    // الأسقف
+    var slabs = '';
+    for (var s = 0; s <= FLOORS; s++) {
+      var sy = s === 0 ? LOBBY : ceil(s);
+      slabs += g('', side(R + 6, sy + 8, 8, 'sc-slab-side') +
+        p('M' + (L - 6) + ' ' + sy + 'H' + (R + 6) + 'l' + D + ' -' + DY + 'H' + (L - 6 + D) + 'z', 'sc-slab-top') +
+        r(L - 6, sy, R - L + 12, 8, 'sc-slab'), 'slab', ' data-k="' + s + '"');
+    }
+    html += g('slabs', slabs);
+    // السطح
+    html += g('roof',
+      g('', side(R + 6, ROOF, 12, 'sc-slab-side') + r(L - 6, ROOF - 12, R - L + 12, 12, 'sc-parapet'), 'roof-part') +
+      g('', side(78, ROOF - 12, 40, 'sc-side-dark') + r(-78, ROOF - 52, 156, 40, 'sc-penthouse') +
+        '<text class="sc-sign roof-sign" x="0" y="' + (ROOF - 26) + '" text-anchor="middle"></text>', 'roof-part') +
+      g('', r(-84, ROOF - 58, 168, 6, '', ' fill="url(#gGoldH)"'), 'roof-part crown-glow') +
+      g('', p('M0 ' + (ROOF - 58) + 'V' + (ROOF - 118), 'sc-antenna') + '<circle class="sc-beacon" cx="0" cy="' + (ROOF - 121) + '" r="3.5"/>', 'roof-part'));
+    // إضاءة الواجهة ليلًا
+    html += g('uplights', '<ellipse cx="-100" cy="836" rx="26" ry="70" fill="url(#gUp)" opacity=".7"/><ellipse cx="100" cy="836" rx="26" ry="70" fill="url(#gUp)" opacity=".7"/>');
+    html += g('canopy', r(-64, LOBBY + 2, 128, 5, '', ' fill="url(#gGoldH)"') + p('M-56 ' + (LOBBY + 7) + 'v14M56 ' + (LOBBY + 7) + 'v14', 'sc-gold-line'));
+    return html;
+  }
+
+  /* ---------------- السقالات ---------------- */
+  function scaffolds() {
+    var out = '';
+    for (var k = 0; k <= FLOORS; k++) {
+      var y1 = k === 0 ? LOBBY : ceil(k), y2 = k === 0 ? G : ceil(k - 1);
+      var xs = [L - 16, -90, -30, 30, 90, R + 16];
+      var poles = xs.map(function (x) { return 'M' + x + ' ' + y1 + 'V' + y2; }).join('');
+      var ledgers = 'M' + (L - 16) + ' ' + (y1 + 2) + 'H' + (R + 16) + 'M' + (L - 16) + ' ' + (y1 + (y2 - y1) * 0.55) + 'H' + (R + 16);
+      var braces = 'M' + (L - 16) + ' ' + y2 + 'L-90 ' + y1 + 'M' + (R + 16) + ' ' + y2 + 'L90 ' + y1;
+      out += g('', r(L - 16, y1, R - L + 32, y2 - y1, '', ' fill="url(#pMesh)" opacity=".5"') +
+        p(poles, 'sc-scaf') + p(ledgers, 'sc-scaf') + p(braces, 'sc-scaf-thin') +
+        r(L - 20, y1 - 2, R - L + 40, 3, 'sc-plank') +
+        p('M' + (R + 16) + ' ' + y1 + 'l14 -6V' + (y2 - 6) + 'l-14 6', 'sc-scaf-thin'), 'scaf', ' data-k="' + k + '"');
+    }
+    return g('scaffold', out);
+  }
+
+  /* ---------------- مخزن المواد ---------------- */
+  function yard() {
+    var blocks = '';
+    for (var i = 0; i < 4; i++) for (var j = 0; j < 3 - (i % 2); j++) blocks += r(250 + j * 16 + i * 2, 888 - i * 7, 14, 6, 'sc-block');
+    return g('yard', blocks +
+      p('M300 896h46M300 892h46M302 888h42', 'sc-rebar-bold') +
+      r(356, 866, 30, 34, 'sc-crate') + p('M356 866l30 34M386 866l-30 34', 'sc-crate-line') +
+      r(392, 874, 24, 26, 'sc-crate') + p('M404 874v26', 'sc-crate-line'));
+  }
+
+  /* ---------------- الحفار ---------------- */
+  function excavator() {
+    return g('excavator',
+      r(-66, 886, 92, 14, 'sc-track', ' rx="7"') +
+      '<circle cx="-58" cy="893" r="5" class="sc-wheel-2"/><circle cx="-20" cy="893" r="5" class="sc-wheel-2"/><circle cx="18" cy="893" r="5" class="sc-wheel-2"/>' +
+      r(-58, 862, 70, 24, '', ' fill="url(#gYellow)" rx="3"') + r(-66, 866, 12, 18, 'sc-counterweight', ' rx="2"') +
+      r(-14, 838, 26, 26, '', ' fill="url(#gYellow)" rx="3"') + r(-9, 842, 16, 14, 'sc-cab-glass', ' rx="2"') +
+      g('exBoom', p('M8 862L60 812L72 820L20 868Z', '', ' fill="url(#gYellow)"') +
+        p('M24 856L58 822', 'sc-hydraulic') +
+        g('exStick', p('M62 812L96 862L88 868L56 822Z', '', ' fill="url(#gYellow)"') +
+          g('exBucket', p('M90 860l14 4-2 14-16 2-6-12z', 'sc-bucket') + p('M86 878l-2 5M92 879l-1 5M98 879l0 5', 'sc-teeth')))),
+      '', ' transform="translate(-260 0)"');
+  }
+
+  /* ---------------- عربية الخرسانة ---------------- */
+  function mixer() {
+    return g('truck',
+      '<g transform="translate(0 999)">' +
+      r(-80, -16, 124, 8, 'sc-chassis') +
+      '<ellipse class="sc-drum" cx="-22" cy="-34" rx="46" ry="22"/>' + p('M-58 -44q36 20 72 0M-60 -30q36 20 76 0', 'sc-drum-stripe') +
+      p('M42 -8V-40h18l16 16v16z', 'sc-cab-truck') + p('M48 -36h10l10 10H48z', 'sc-car-win') +
+      '<circle class="sc-wheel" cx="-58" cy="0" r="7"/><circle class="sc-wheel" cx="-36" cy="0" r="7"/><circle class="sc-wheel" cx="58" cy="0" r="7"/>' +
+      '</g>', '', ' transform="translate(-1800 0)"') +
+      g('chute', p('M234 964L150 912L140 918', 'sc-chute') + p('M140 918Q128 926 124 936', 'sc-stream'));
+  }
+
+  /* ---------------- الكرين ---------------- */
+  function crane() {
+    var mast = 'M' + (MAST - 8) + ' 900V' + (JIB_Y + 6) + 'M' + (MAST + 8) + ' 900V' + (JIB_Y + 6);
+    for (var y = 900; y > JIB_Y + 30; y -= 24) mast += 'M' + (MAST - 8) + ' ' + y + 'L' + (MAST + 8) + ' ' + (y - 24) + 'M' + (MAST + 8) + ' ' + y + 'L' + (MAST - 8) + ' ' + (y - 24) + 'M' + (MAST - 8) + ' ' + y + 'H' + (MAST + 8);
+    var jib = 'M' + MAST + ' ' + (JIB_Y - 12) + 'H420M' + MAST + ' ' + JIB_Y + 'H420M420 ' + (JIB_Y - 12) + 'V' + JIB_Y;
+    for (var x = MAST; x < 410; x += 14) jib += 'M' + x + ' ' + JIB_Y + 'L' + (x + 7) + ' ' + (JIB_Y - 12) + 'L' + (x + 14) + ' ' + JIB_Y;
+    var loads =
+      g('loadRebar', p('M-2 12-24 26M2 12 24 26', 'sc-cable') + p('M-30 27h60M-30 30h60M-28 33h56', 'sc-rebar-bold'), 'load') +
+      g('loadForm', p('M-2 12-18 24M2 12 18 24', 'sc-cable') + r(-20, 24, 40, 40, 'sc-formwork'), 'load') +
+      g('loadBucket', p('M-2 12-12 22M2 12 12 22', 'sc-cable') + p('M-14 22h28l-6 26h-16z', 'sc-concrete-bucket'), 'load') +
+      g('loadGlass', p('M-2 12-26 24M2 12 26 24', 'sc-cable') + r(-30, 24, 60, 32, '', ' fill="url(#gGlass)" stroke="#1d3349"'), 'load');
+    return g('crane',
+      r(MAST - 24, 886, 48, 14, 'sc-crane-base') +
+      g('mast', p(mast, 'sc-crane-steel')) +
+      g('craneTop', g('',
+        p(jib, 'sc-crane-steel') +
+        r(MAST - 90, JIB_Y - 12, 90, 12, 'sc-crane-body') + r(MAST - 88, JIB_Y, 26, 22, 'sc-crane-weight') +
+        p('M' + (MAST - 6) + ' ' + (JIB_Y - 12) + 'L' + MAST + ' ' + (JIB_Y - 52) + 'L' + (MAST + 6) + ' ' + (JIB_Y - 12) +
+          'M' + MAST + ' ' + (JIB_Y - 52) + 'L415 ' + (JIB_Y - 12) + 'M' + MAST + ' ' + (JIB_Y - 52) + 'L' + (MAST - 88) + ' ' + (JIB_Y - 12), 'sc-cable') +
+        r(MAST + 10, JIB_Y + 2, 26, 20, 'sc-crane-cab', ' rx="3"') +
+        '<line id="cable" class="sc-cable" x1="' + YARD + '" y1="' + (JIB_Y + 6) + '" x2="' + YARD + '" y2="' + TOP_Y + '"/>' +
+        r(YARD - 9, JIB_Y, 18, 7, 'sc-crane-body', ' id="trolley"') +
+        g('hook', g('', p('M0 0v8a4.5 4.5 0 1 1-4.5 4.5', 'sc-hook') + loads, 'sc-swing'), '', ' transform="translate(' + YARD + ' ' + TOP_Y + ')"'),
+        'sc-sway')));
+  }
+
+  /* ---------------- العمال والناس والعربيات ---------------- */
+  function people(lite) {
+    function w(x, cls, delay, dist) {
+      return '<g transform="translate(' + x + ' 0)"><g class="' + cls + '" style="animation-delay:-' + delay + 's;--walk:' + dist + 'px"><use href="#gWorker"/></g></g>';
+    }
+    var ground = w(-205, 'walker', 0, 18) + w(210, 'walker', 2, -22) + (lite ? '' : w(-330, 'walker', 1, 14));
+    var slab = w(-110, 'walker', 0, 50) + w(40, 'walker', 1.5, -40) + (lite ? '' : w(120, 'walker idle', 0, 0));
+    var folks = '';
+    [[-250, 'p1', 60], [-40, 'p2', -30], [230, 'p3', 40], [320, 'p4', -50], [-320, 'p2', 30]].slice(0, lite ? 3 : 5).forEach(function (f, i) {
+      folks += '<g transform="translate(' + f[0] + ' 935)"><g class="walker ' + f[1] + '" style="animation-delay:-' + i + 's;--walk:' + f[2] + 'px"><use href="#gPerson"/></g></g>';
+    });
+    var parked = [[-300, 'c2'], [260, 'c1']].map(function (c) {
+      return '<g transform="translate(' + c[0] + ' 934)">' + r(-24, -11, 48, 10, 'sc-car-body ' + c[1], ' rx="4"') +
+        p('M-14 -11l6 -8h16l7 8z', 'sc-car-cab ' + c[1]) + p('M-10 -12l4 -5h12l4 5z', 'sc-car-win') +
+        '<circle class="sc-wheel" cx="-13" cy="0" r="3.8"/><circle class="sc-wheel" cx="13" cy="0" r="3.8"/></g>';
+    }).join('');
+    return g('groundCrew', '<g transform="translate(0 900)">' + ground + '</g>') +
+      g('slabCrew', slab, '', ' transform="translate(0 ' + LOBBY + ')"') +
+      g('folks', folks) + g('parked', parked);
+  }
+
+  function street(lite) {
+    var lamps = [-560, -440, 440, 560, -900, 900].map(function (x) {
       return '<g class="sc-lamp"><ellipse class="sc-lamp-pool" cx="' + (x + 14) + '" cy="976" rx="46" ry="10"/>' +
         '<circle class="sc-lamp-glow" cx="' + (x + 14) + '" cy="874" r="30" fill="url(#gGlow)"/>' +
-        p('M' + x + ' 942V872q0-6 6-6h10', 'sc-pole') + r(x + 12, 866, 12, 4, 'sc-gold') + '</g>';
+        p('M' + x + ' 942V872q0-6 6-6h10', 'sc-pole') + r(x + 12, 866, 12, 4, '', ' fill="url(#gGold)"') + '</g>';
     }).join('');
-    var palms = PALMS.map(function (x) {
-      return '<g class="sc-palm">' + p('M' + x + ' 936q-4-34 3-66', 'sc-palm-trunk') +
+    var trees = [-235, -190, 205, 250].map(function (x) {
+      return '<g class="sc-tree">' + p('M' + x + ' 936q-4-34 3-66', 'sc-palm-trunk') +
         p('M' + (x + 3) + ' 870q-20-12-38 4M' + (x + 3) + ' 870q20-14 38 4M' + (x + 3) + ' 870q-10-22-30-22M' + (x + 3) + ' 870q10-22 30-22M' + (x + 3) + ' 870q0-20 4-30', 'sc-palm-leaf') + '</g>';
-    }).join('');
-    var trees = TREES.map(function (x) {
-      return '<g class="sc-tree">' + r(x - 2, 912, 4, 26, 'sc-trunk') +
-        '<circle class="sc-leaf" cx="' + x + '" cy="902" r="17"/><circle class="sc-leaf-2" cx="' + (x + 7) + '" cy="896" r="9"/></g>';
+    }).join('') + [-680, -760, 680, 760, -1040, 1040].map(function (x) {
+      return '<g class="sc-tree">' + r(x - 2, 912, 4, 24, 'sc-trunk') +
+        '<circle class="sc-leaf" cx="' + x + '" cy="902" r="16"/><circle class="sc-leaf-2" cx="' + (x + 6) + '" cy="896" r="9"/></g>';
+    }).join('') + [-120, 120].map(function (x) {
+      return '<g class="sc-tree">' + r(x - 16, 926, 32, 10, 'sc-planter') + '<ellipse cx="' + x + '" cy="924" rx="18" ry="7" class="sc-leaf"/></g>';
     }).join('');
     var colors = ['c1', 'c2', 'c3', 'c4', 'c5'];
     function car(i, dur, delay) {
@@ -239,362 +327,255 @@
         '<circle class="sc-wheel" cx="-13" cy="0" r="3.8"/><circle class="sc-wheel" cx="13" cy="0" r="3.8"/>' +
         '<circle class="sc-headlight" cx="23" cy="-6" r="2.2"/><circle class="sc-taillight" cx="-23" cy="-6" r="2"/></g></g>';
     }
-    var laneA = '', laneB = '';
-    for (var i = 0; i < 6; i++) {
-      laneA += car(i, 15 + (i % 3) * 3, i * 3);
-      laneB += car(i + 2, 13 + (i % 2) * 4, i * 2.7 + 1.5);
+    var n = lite ? 3 : 5, laneA = '', laneB = '';
+    for (var i = 0; i < n; i++) {
+      laneA += car(i, 16 + (i % 3) * 3, i * 3.6);
+      laneB += car(i + 2, 14 + (i % 2) * 4, i * 3.2 + 1.5);
     }
-    var truck = '<g id="truck" transform="translate(-1700 0)"><g transform="translate(0 999)">' +
-      r(-80, -16, 120, 8, 'sc-chassis') +
-      '<ellipse class="sc-drum" cx="-22" cy="-34" rx="46" ry="22"/>' + p('M-58 -44q36 20 72 0M-60 -30q36 20 76 0', 'sc-drum-stripe') +
-      p('M40 -8V-40h18l16 16v16z', 'sc-cab-truck') + p('M46 -36h10l10 10H46z', 'sc-car-win') +
-      '<circle class="sc-wheel" cx="-58" cy="0" r="7"/><circle class="sc-wheel" cx="-36" cy="0" r="7"/><circle class="sc-wheel" cx="56" cy="0" r="7"/>' +
-      '<circle class="sc-headlight" cx="73" cy="-14" r="2.5"/></g></g>';
-    var dust = '<g id="dust">' + [[0, 0, 220, 60], [-150, -20, 110, 50], [150, -20, 110, 50], [-60, -60, 90, 55], [70, -70, 90, 55]].map(function (d) {
-      return '<ellipse cx="' + d[0] + '" cy="' + (G + d[1]) + '" rx="' + d[2] + '" ry="' + d[3] + '" fill="url(#gDust)"/>';
-    }).join('') + '</g>';
-    return '<g id="trees">' + trees + '</g><g id="palms">' + palms + '</g><g id="lamps">' + lamps + '</g>' + truck + dust +
-      '<g id="cars"><g transform="translate(0 968)">' + laneA + '</g><g transform="translate(0 994) scale(-1 1)">' + laneB + '</g></g>';
+    return g('lamps', lamps) + g('trees', trees) +
+      g('cars', '<g transform="translate(0 968)">' + laneA + '</g><g transform="translate(0 994) scale(-1 1)">' + laneB + '</g>');
   }
 
-  /* ---------------- المباني المتتابعة ---------------- */
-  function buildingHtml(B, bi) {
-    var rand = rng(31 + bi * 7);
-    var glassy = B.style !== 'res';
-    var html = '<g clip-path="url(#cGround)"><g class="bld" id="' + B.id + '">';
-    var lits = '', lobby = '', crowns = '';
+  function dust(lite) {
+    var rand = rng(9), out = '';
+    for (var i = 0; i < (lite ? 7 : 16); i++) {
+      out += '<g transform="translate(' + Math.round(rand() * 360 - 180) + ' ' + Math.round(900 - rand() * 20) + ')">' +
+        '<circle class="sc-particle" r="' + Math.round(10 + rand() * 22) + '" fill="url(#gDust)" style="animation-delay:-' + (rand() * 4).toFixed(1) + 's;animation-duration:' + (3 + rand() * 3).toFixed(1) + 's"/></g>';
+    }
+    return g('dust', out);
+  }
 
-    B.towers.forEach(function (t, ti) {
-      var l = t.x - t.w / 2, rt = t.x + t.w / 2, top = PODIUM - t.floors * t.fh;
-      var sideRight = t.x >= 0;
-      var D = Math.round(t.w * 0.16), DY = Math.round(D * 0.45), sx = sideRight ? D : -D, ex = sideRight ? rt : l;
-      var bw = t.w / t.bays;
-      var tag = ' data-t="' + ti + '"';
-      var sideD = 'M' + ex + ' ' + PODIUM + 'l' + sx + ' ' + (-DY) + 'V' + (top - DY) + 'l' + (-sx) + ' ' + DY + 'z';
-
-      // القاعدة
-      var pex = sideRight ? rt + 14 : l - 14;
-      html += '<g class="b-podium">' + p('M' + pex + ' ' + PODIUM + 'l' + sx + ' ' + (-DY) + 'v12l' + (-sx) + ' ' + DY + 'z', 'sc-slab-side') +
-        r(l - 14, PODIUM, t.w + 28, 12, 'sc-podium') + r(l - 14, PODIUM + 8, t.w + 28, 4, '', ' fill="url(#pHaz)"') + '</g>';
-
-      // الجانب
-      if (glassy) {
-        var lines = '';
-        for (var k0 = 0; k0 < t.floors; k0++) lines += 'M' + ex + ' ' + (PODIUM - k0 * t.fh) + 'l' + sx + ' ' + (-DY);
-        html += '<g class="b-side-glass">' + p(sideD, '', ' fill="url(#gSideGlass)"') + p(lines, 'sc-side-lines') + '</g>';
-      } else {
-        html += '<g class="b-side-grow"' + tag + '>' + p(sideD, 'sc-side-wall') +
-          p(sideD, '', ' fill="url(#' + (sideRight ? 'pWinR' : 'pWinL') + ')"') + '</g>';
-      }
-
-      // الأعمدة
-      var cols = '';
-      for (var i = 0; i <= t.bays; i++) cols += r(l + i * bw - 5, top, 10, PODIUM - top, 'sc-column', ' fill="url(#gConcrete)"');
-      cols += r(ex + sx - 3, top - DY, 6, PODIUM - top, 'sc-column', ' fill="url(#gConcrete)"');
-      html += '<g class="b-cols"' + tag + '>' + cols + '</g>';
-
-      // الزجاج / النوافذ
-      var panes = '', span = '';
-      for (var k = 0; k < t.floors; k++) {
-        var y = PODIUM - (k + 1) * t.fh;
-        span += 'M' + l + ' ' + (y + 7) + 'H' + rt;
-        if (glassy && k === 0) continue;
-        for (var j = 0; j < t.bays; j++) {
-          var bx = l + j * bw + 5, pw = bw - 10, ph = t.fh - 7;
-          panes += '<g class="b-pane">' + r(bx, y + 7, pw, ph, 'sc-glass', ' fill="url(#gCurtain)"') +
-            (pw > 44 ? p('M' + (bx + pw / 2) + ' ' + (y + 7) + 'v' + ph, 'sc-mullion') : '') +
-            (glassy ? '' : r(bx - 3, y + 7 + ph * 0.62, pw + 6, 3, 'sc-rail') + p('M' + bx + ' ' + (y + 7 + ph * 0.62) + 'v' + ph * 0.38 + 'M' + (bx + pw) + ' ' + (y + 7 + ph * 0.62) + 'v' + ph * 0.38, 'sc-rail-post')) +
-            '</g>';
-          if (rand() < 0.45) lits += r(bx + 1, y + 8, pw - 2, ph - 2, 'sc-mainlit b-lit');
-        }
-      }
-      html += '<g class="b-glass">' + panes + '</g>';
-      if (glassy) html += '<g class="b-span">' + p(span, 'sc-spandrel') + '</g>';
-      if (glassy) {
-        lobby += '<g class="b-lobby">' + r(l + 6, PODIUM - t.fh + 6, t.w - 12, t.fh - 6, '', ' fill="url(#gLobby)"') +
-          r(t.x - Math.min(36, t.w * 0.2), PODIUM - t.fh * 0.62, Math.min(72, t.w * 0.4), t.fh * 0.62, 'sc-lobby-door') +
-          r(t.x - t.w * 0.28, PODIUM - t.fh - 2, t.w * 0.56, 5, '', ' fill="url(#gGoldH)"') + '</g>';
-      }
-
-      // الأسقف (ترفعها الرافعة)
-      var slabs = '';
-      for (var s = 0; s < t.floors; s++) {
-        var sy = PODIUM - (s + 1) * t.fh;
-        var sex = sideRight ? rt + 4 : l - 4;
-        slabs += '<g class="b-slab" data-k="' + s + '" data-t="' + ti + '" data-cx="' + t.x + '" data-y="' + sy + '" data-floors="' + t.floors + '">' +
-          p('M' + sex + ' ' + sy + 'l' + sx + ' ' + (-DY) + 'v7l' + (-sx) + ' ' + DY + 'z', 'sc-slab-side') +
-          p('M' + (l - 4) + ' ' + sy + 'H' + (rt + 4) + 'l' + sx + ' ' + (-DY) + 'H' + (l - 4 + sx) + 'z', 'sc-slab-top') +
-          r(l - 4, sy, t.w + 8, 7, glassy ? 'sc-slab' : 'sc-slab sc-slab-white') + '</g>';
-      }
-      html += '<g class="b-slabs">' + slabs + '</g>';
-
-      // التاج
-      var cx = t.x;
-      if (B.style === 'res') {
-        crowns += '<g class="b-crown">' + r(l - 4, top - 12, t.w + 8, 12, 'sc-slab-white') +
-          p('M' + (sideRight ? rt + 4 : l - 4) + ' ' + (top - 12) + 'l' + sx + ' ' + (-DY) + 'v12l' + (-sx) + ' ' + DY + 'z', 'sc-slab-side') + '</g>' +
-          '<g class="b-crown">' + r(l + 18, top - 48, 4, 36, 'sc-gold') + r(l + t.w * 0.48, top - 48, 4, 36, 'sc-gold') +
-          r(l + 12, top - 52, t.w * 0.5, 6, 'sc-gold') +
-          p('M' + (l + 30) + ' ' + (top - 46) + 'v6M' + (l + 50) + ' ' + (top - 46) + 'v6M' + (l + 70) + ' ' + (top - 46) + 'v6M' + (l + 90) + ' ' + (top - 46) + 'v6', 'sc-gold-line') +
-          r(rt - 60, top - 36, 40, 24, 'sc-crown') + '</g>';
-      } else if (B.style === 'office') {
-        crowns += '<g class="b-crown">' + r(l + t.w * 0.12, top - 34, t.w * 0.76, 34, 'sc-crown') +
-          p('M' + (l + t.w * 0.88) + ' ' + (top - 34) + 'l' + (sx * 0.8) + ' ' + (-DY * 0.8) + 'v34l' + (-sx * 0.8) + ' ' + (DY * 0.8) + 'z', 'sc-side') + '</g>' +
-          '<g class="b-crown">' + r(l + t.w * 0.1, top - 40, t.w * 0.8, 6, '', ' fill="url(#gGoldH)"') + '</g>' +
-          '<g class="b-crown">' + p('M' + (cx - 6) + ' ' + (top - 40) + 'L' + cx + ' ' + (top - 120) + 'L' + (cx + 6) + ' ' + (top - 40) + 'z', '', ' fill="url(#gGold)"') +
-          '<circle class="sc-beacon" cx="' + cx + '" cy="' + (top - 124) + '" r="4"/></g>';
-      } else if (B.style === 'twin') {
-        var fins = '';
-        for (var fx = l + 6; fx < rt - 3; fx += 9) fins += r(fx, top - 30, 3, 30, 'sc-gold');
-        crowns += '<g class="b-crown">' + fins + r(l - 2, top - 34, t.w + 4, 5, '', ' fill="url(#gGoldH)"') + '</g>' +
-          '<g class="b-crown">' + p('M' + (cx - 5) + ' ' + (top - 34) + 'L' + cx + ' ' + (top - 104) + 'L' + (cx + 5) + ' ' + (top - 34) + 'z', '', ' fill="url(#gGold)"') +
-          '<circle class="sc-beacon" cx="' + cx + '" cy="' + (top - 108) + '" r="4"/></g>';
-      } else {
-        var ffins = '';
-        for (var ff = -96; ff <= 96; ff += 12) ffins += 'M' + ff + ' ' + (top - 42) + 'v40';
-        crowns += '<g class="b-crown">' + p('M110 ' + (top - 42) + 'l40 -18v40l-40 18z', 'sc-side') +
-          r(-110, top - 42, 220, 42, 'sc-crown') + p(ffins, 'sc-fins') + '</g>' +
-          '<g class="b-crown">' + r(-114, top - 50, 228, 8, '', ' fill="url(#gGoldH)"') + '</g>' +
-          '<g class="b-crown">' + p('M64 ' + (top - 94) + 'l30 -14v44l-30 14z', 'sc-side') + r(-64, top - 94, 128, 44, 'sc-crown') +
-          '<text class="sc-sign crown-sign" x="0" y="' + (top - 66) + '" text-anchor="middle"></text>' +
-          r(-70, top - 100, 140, 6, '', ' fill="url(#gGoldH)"') + '</g>' +
-          '<g class="b-crown">' + p('M-7 ' + (top - 100) + 'L0 ' + (top - 200) + 'L7 ' + (top - 100) + 'z', '', ' fill="url(#gGold)"') +
-          p('M-14 ' + (top - 116) + 'h28M-10 ' + (top - 134) + 'h20M-6 ' + (top - 152) + 'h12', 'sc-gold-line') +
-          '<circle class="sc-beacon" cx="0" cy="' + (top - 204) + '" r="4.5"/></g>';
-      }
+  /* ---------------- المقدمة (أسرع طبقة) ---------------- */
+  function fore() {
+    var fence = '';
+    [[-560, -350], [200, 440]].forEach(function (seg) {
+      for (var x = seg[0]; x < seg[1]; x += 30) fence += r(x, 872, 28, 28, 'sc-fence') + r(x, 886, 28, 3, '', ' fill="url(#gGold)"');
     });
-
-    if (B.style === 'twin') {
-      var t0 = B.towers[0], by = PODIUM - 10 * t0.fh;
-      var bl = t0.x + t0.w / 2, br = B.towers[1].x - B.towers[1].w / 2;
-      crowns += '<g class="b-crown">' + r(bl, by, br - bl, t0.fh * 1.6, 'sc-glass', ' fill="url(#gCurtain)"') +
-        r(bl, by - 3, br - bl, 4, '', ' fill="url(#gGoldH)"') + r(bl, by + t0.fh * 1.6 - 1, br - bl, 4, '', ' fill="url(#gGoldH)"') + '</g>';
-    }
-
-    html += '<g class="b-lits">' + lits + '</g>' + lobby + crowns;
-    if (B.style === 'flag') {
-      var ft = B.towers[0], fTop = PODIUM - ft.floors * ft.fh;
-      html += '<g clip-path="url(#cFacade)"><rect id="shine" class="sc-shine" x="-260" y="' + (fTop - 40) + '" width="70" height="' + (PODIUM - fTop + 60) + '" fill="url(#gShine)" transform="skewX(-18)"/></g>' +
-        '<g id="beams">' + p('M-3 ' + (fTop - 96) + 'L-240 -900L-120 -900Z', 'sc-beam sc-beam-a', ' fill="url(#gBeam)"') +
-        p('M3 ' + (fTop - 96) + 'L120 -900L240 -900Z', 'sc-beam sc-beam-b', ' fill="url(#gBeam)"') + '</g>';
-    }
-    return html + '</g></g>';
+    fence += '<text class="sc-sign fence-sign" x="-455" y="883" text-anchor="middle"></text>';
+    var board = p('M-620 900V818M-500 900V818', 'sc-pole') +
+      r(-640, 772, 160, 52, 'sc-board') + r(-640, 772, 160, 4, '', ' fill="url(#gGold)"') +
+      '<text class="sc-sign board-sign" x="-560" y="802" text-anchor="middle"></text>' +
+      '<text class="sc-board-sub" x="-560" y="816" text-anchor="middle">CONSTRUCTION &amp; ENGINEERING</text>';
+    return g('fence', fence) + g('board', board);
   }
 
-  function sparks() {
-    return '<g id="sparks">' + [-80, 0, 80].map(function (x, i) {
-      return '<g class="sc-spark" transform="translate(' + x + ' 0)" style="animation-delay:' + (i * 0.23) + 's">' +
-        '<circle r="3.5"/><path d="M0 0l-9-10M0 0l8-9M0 0l-3 11M0 0l11 2"/></g>';
-    }).join('') + '</g>';
-  }
-
-  function crane() {
-    var mast = 'M176 900V150M190 900V150';
-    for (var y = 900; y > 176; y -= 26) mast += 'M176 ' + y + 'L190 ' + (y - 26) + 'M190 ' + y + 'L176 ' + (y - 26);
-    var jib = 'M-70 138H190M-70 150H190M-70 138V150';
-    for (var x = -70; x < 180; x += 14) jib += 'M' + x + ' 150L' + (x + 7) + ' 138L' + (x + 14) + ' 150';
-    return '<g id="crane">' +
-      r(162, 886, 42, 14, 'sc-crane-weight') +
-      p(mast, 'sc-crane-steel') + p(jib, 'sc-crane-steel') +
-      p('M177 138L183 102L189 138M183 102L-70 142M183 102L252 140', 'sc-cable') +
-      r(190, 138, 62, 10, 'sc-gold') + r(232, 148, 18, 20, 'sc-crane-weight') +
-      r(172, 152, 26, 17, 'sc-crane-cab', ' rx="2"') +
-      '<line id="craneCable" class="sc-cable" x1="150" y1="156" x2="150" y2="180"/>' +
-      r(142, 150, 16, 6, 'sc-gold', ' id="trolley"') +
-      '<g id="hook" transform="translate(150 180)">' + p('M0 0v7a4 4 0 1 1-4 4', 'sc-hook') +
-      '<g id="hookLoad">' + p('M-2 12-30 24M2 12 30 24', 'sc-cable') + r(-36, 24, 72, 7, 'sc-gold') + '</g></g>' +
-      '</g>';
-  }
-
-  /* ---------------- API ---------------- */
-  function markup() {
-    return defs() + sky() +
-      '<g id="world">' +
-      '<g id="bpGrid">' + r(-5000, -5000, 10000, 5000 + G, '', ' fill="url(#pGrid)"') + '</g>' +
-      surroundings() + ground() +
-      BUILDINGS.map(buildingHtml).join('') +
-      sparks() + street() + crane() +
-      '</g>';
-  }
-
-  function build(svg, signText) {
-    svg.innerHTML = markup();
-    Array.prototype.forEach.call(svg.querySelectorAll('.crown-sign'), function (el) { el.textContent = signText || ''; });
+  /* ---------------- التركيب ---------------- */
+  function build(svg, opts) {
+    opts = opts || {};
+    var lite = !!opts.lite;
+    svg.innerHTML = defs() + sky(lite) +
+      g('world',
+        g('layerBack', skyline()) +
+        g('layerMid',
+          ground() + foundation() + yard() + building(lite) + scaffolds() + mixer() + excavator() +
+          people(lite) + street(lite) + dust(lite) + crane()) +
+        g('layerFore', fore()));
+    Array.prototype.forEach.call(svg.querySelectorAll('.sc-sign'), function (el) { el.textContent = opts.sign || ''; });
     fit(svg);
   }
 
-  /** viewBox يملأ الشاشة، والموقع في المنتصف */
+  /** viewBox يملأ الشاشة ويُبقي المبنى والكرين في الكادر */
   function fit(svg) {
     var vw = svg.clientWidth || window.innerWidth;
     var vh = svg.clientHeight || window.innerHeight;
-    var ar = vw / vh;
-    var h, w, y0;
+    var ar = vw / vh, w, h, y0;
     if (ar >= 0.95) {
-      h = 1010; w = h * ar;
-      if (w < 900) { w = 900; h = w / ar; }
+      h = 1010; w = Math.max(h * ar, 1000);
+      h = w / ar;
       y0 = 1010 - h;
     } else {
-      // الموبايل: نركّز على المبنى ونوسّطه رأسيًا
-      w = 560; h = w / ar;
-      y0 = 560 - h / 2;
+      w = 720; h = w / ar;
+      y0 = 570 - h / 2;
     }
-    var x0 = 20 - w / 2;
-    svg.setAttribute('viewBox', [x0, y0, w, h].map(function (n) { return Math.round(n * 10) / 10; }).join(' '));
+    svg.setAttribute('viewBox', [-w / 2 + 20, y0, w, h].map(function (n) { return Math.round(n * 10) / 10; }).join(' '));
   }
 
-  function floorsAt() { return 0; }
-  function phaseAt() { return 0; }
-
+  /* ---------------- الخط الزمني ---------------- */
   function timeline(svg, onProgress) {
     var $ = function (s) { return svg.querySelector(s); };
     var $$ = function (s) { return Array.prototype.slice.call(svg.querySelectorAll(s)); };
-    var trolley = $('#trolley'), cable = $('#craneCable'), hook = $('#hook');
-    var crane = { tx: PICK.tx, hy: PICK.hy };
-    function draw() {
-      trolley.setAttribute('x', crane.tx - 8);
-      cable.setAttribute('x1', crane.tx);
-      cable.setAttribute('x2', crane.tx);
-      cable.setAttribute('y2', crane.hy);
-      hook.setAttribute('transform', 'translate(' + crane.tx + ' ' + crane.hy + ')');
+    var tl = gsap.timeline({ paused: true, defaults: { ease: 'none' }, onUpdate: function () { if (onProgress) onProgress(this.progress()); } });
+    function hide(targets, vars) {
+      vars = vars || { opacity: 0 };
+      tl.fromTo(targets, vars, Object.assign({}, vars, { duration: 0.001 }), 0);
     }
-    var tl = gsap.timeline({
-      paused: true,
-      defaults: { ease: 'none' },
-      onUpdate: function () { if (onProgress) onProgress(this.progress()); }
-    });
-    function move(to, dur, at, ease) {
-      tl.to(crane, { tx: to[0], hy: to[1], duration: dur, ease: ease || 'sine.inOut', onUpdate: draw }, at);
+
+    // الكرين
+    var trolley = $('#trolley'), cable = $('#cable'), hook = $('#hook');
+    var cr = { x: YARD, y: TOP_Y };
+    function drawCrane() {
+      trolley.setAttribute('x', cr.x - 9);
+      cable.setAttribute('x1', cr.x);
+      cable.setAttribute('x2', cr.x);
+      cable.setAttribute('y2', cr.y);
+      hook.setAttribute('transform', 'translate(' + cr.x + ' ' + cr.y + ')');
     }
-    var world = $('#world'), sparksEl = $('#sparks'), dust = $('#dust'), fence = $('#fence');
-    var plaza = $('#plaza'), palms = $$('#palms .sc-palm');
+    function craneTo(x, y, dur, at, ease) {
+      tl.to(cr, { x: x, y: y, duration: dur, ease: ease || 'power2.inOut', onUpdate: drawCrane }, at);
+    }
+    /** رفعة كاملة: من المخزن إلى الهدف مع توقف قصير قبل التحميل والتنزيل */
+    function lift(at, dur, destX, destY, load) {
+      craneTo(YARD, TOP_Y, dur * 0.16, at);
+      craneTo(YARD, 846, dur * 0.12, at + dur * 0.16, 'power1.inOut');
+      tl.to(load, { opacity: 1, duration: 0.01 }, at + dur * 0.3);
+      craneTo(YARD, TOP_Y, dur * 0.12, at + dur * 0.32, 'power1.inOut');
+      craneTo(destX, TOP_Y, dur * 0.18, at + dur * 0.46);
+      craneTo(destX, destY, dur * 0.14, at + dur * 0.66, 'power1.inOut');
+      tl.to(load, { opacity: 0, duration: 0.01 }, at + dur * 0.84);
+      craneTo(destX, TOP_Y, dur * 0.12, at + dur * 0.86, 'power1.inOut');
+    }
 
-    // الحالة الابتدائية للعناصر المشتركة
-    tl.fromTo([sparksEl, dust, plaza, $('#beams'), $('#shine')], { opacity: 0 }, { opacity: 0, duration: 0.01 }, 0)
-      .fromTo(palms, { scale: 0, transformOrigin: '50% 100%' }, { scale: 0, duration: 0.01 }, 0)
-      .fromTo(fence, { opacity: 0 }, { opacity: 0, duration: 0.01 }, 0)
-      .fromTo($$('#frontLayer .rise'), { y: function (i, el) { return +el.getAttribute('data-h'); } }, { y: function (i, el) { return +el.getAttribute('data-h'); }, duration: 0.01 }, 0);
+    // الحفار
+    var ex = { boom: 0, stick: 0, bucket: 0 };
+    var boom = $('#exBoom'), stick = $('#exStick'), bucket = $('#exBucket');
+    function drawEx() {
+      boom.setAttribute('transform', 'rotate(' + ex.boom + ' 14 865)');
+      stick.setAttribute('transform', 'rotate(' + ex.stick + ' 64 816)');
+      bucket.setAttribute('transform', 'rotate(' + ex.bucket + ' 92 864)');
+    }
 
-    // السماء: من النهار للغروب ثم الليل
-    tl.fromTo($('#dusk'), { opacity: 0 }, { opacity: 0.2, duration: 20 }, 0)
-      .to($('#dusk'), { opacity: 0.45, duration: 10 }, 28)
-      .to($('#dusk'), { opacity: 0.75, duration: 10 }, 53)
-      .to($('#dusk'), { opacity: 1, duration: 12 }, 78)
-      .fromTo($('#sun'), { attr: { cy: 200 } }, { attr: { cy: 980 }, duration: 70 }, 0)
-      .fromTo($('#stars'), { opacity: 0 }, { opacity: 1, duration: 30 }, 50)
-      .fromTo($('#clouds'), { x: 0 }, { x: 420, duration: 100 }, 0)
-      .fromTo($('#bpGrid'), { opacity: 1 }, { opacity: 0, duration: 20 }, 0)
-      .fromTo($$('#lamps .sc-lamp-glow, #lamps .sc-lamp-pool'), { opacity: 0 }, { opacity: 1, duration: 2, stagger: 0.2 }, 55)
-      .fromTo($$('#backLayer .sc-lit'), { opacity: 0 }, { opacity: 1, duration: 3, stagger: 0.4 }, 56)
-      .fromTo($('#backLayer'), { x: -80 }, { x: 80, duration: 100 }, 0);
+    var cols = $$('#columns .sc-col'), cages = $$('#cages .sc-cage');
+    var sideWall = $('#sideWall');
+    var slabs = $$('#slabs .slab'), scafs = $$('#scaffold .scaf');
+    var panes = $$('#panes .pane'), loads = $$('#hook .load');
+    var world = $('#world'), dustEl = $('#dust'), slabCrew = $('#slabCrew'), shadow = $('#shadow');
 
-    // عربية الخرسانة في البداية
-    tl.fromTo($('#truck'), { x: -1700 }, { x: -470, duration: 3, ease: 'power2.out' }, 0)
-      .to($('#truck'), { x: -2100, duration: 3, ease: 'power2.in' }, 6)
-      .fromTo($('#hookLoad'), { opacity: 1 }, { opacity: 0, duration: 1 }, 4);
+    // الحالة الابتدائية
+    hide([$('#rebarV'), $('#rebarH'), $('#concrete'), $('#starters'), $('#chute'), dustEl, slabCrew,
+      $('#sideGlass'), $('#spandrels'), $('#lobby'), $('#reflect'), $('#uplights'), $('#canopy'), $('#plaza'),
+      $('#folks'), $('#parked'), $('#moon'), $('#stars')].concat(loads, $$('#winLights rect'), $$('.sc-lamp-glow, .sc-lamp-pool'), $$('.sc-city-lit')));
+    hide(cols.concat(cages, [sideWall]), { scaleY: 0, transformOrigin: '50% 100%' });
+    hide(slabs, { scaleX: 0, opacity: 0, transformOrigin: '0% 50%' });
+    hide(scafs, { scaleY: 0, opacity: 0, transformOrigin: '50% 100%' });
+    hide(panes, { opacity: 0, x: 28 });
+    hide($$('#roof .roof-part'), { opacity: 0, y: -40 });
+    hide($$('#trees .sc-tree'), { scale: 0, transformOrigin: '50% 100%' });
+    hide($('#pit'), { scaleY: 0, transformOrigin: '50% 0%' });
+    hide($('#pile'), { scaleY: 0, transformOrigin: '50% 100%' });
+    hide($('#podium'), { scaleX: 0, transformOrigin: '50% 50%' });
+    hide(shadow, { attr: { width: 0 } });
+    tl.set(ex, { boom: 0, stick: 0, bucket: 0, onUpdate: drawEx }, 0);
 
-    BUILDINGS.forEach(function (B, bi) {
-      var q = function (s) {
-        return $$(s.split(',').map(function (part) { return '#' + B.id + ' ' + part.trim(); }).join(', '));
-      };
-      var el = $('#' + B.id);
-      var a = B.win[0], b = B.win[1], span = b - a;
-      var glassy = B.style !== 'res';
-      var first = bi === 0;
-      var s0 = a + span * 0.06, sLen = span * 0.5;
-      var g0 = a + span * 0.58, g1 = a + span * 0.8;
-      var c0 = g1, c1 = a + span * 0.92;
+    // الكاميرا والعمق (السماء أبطأ، المقدمة أسرع)
+    tl.fromTo(world, { scale: 1.75, svgOrigin: '0 960' }, { scale: 1.3, svgOrigin: '0 960', duration: 30, ease: 'power1.inOut' }, 0)
+      .to(world, { scale: 1.08, svgOrigin: '0 960', duration: 26, ease: 'power1.inOut' }, 32)
+      .to(world, { scale: 1, svgOrigin: '0 960', duration: 24, ease: 'power1.inOut' }, 60)
+      .to(world, { scale: 0.94, svgOrigin: '0 960', duration: 12, ease: 'power1.inOut' }, 86)
+      .fromTo($('#layerBack'), { x: -40 }, { x: 40, duration: 100 }, 0)
+      .fromTo($('#layerFore'), { x: 90 }, { x: -60, duration: 100 }, 0)
+      .fromTo($('#clouds'), { x: 0 }, { x: 180, duration: 100 }, 0);
 
-      // الحالة الابتدائية
-      tl.fromTo(q('.b-cols, .b-side-grow'), { scaleY: 0, transformOrigin: '50% 100%' }, { scaleY: 0, duration: 0.01 }, 0)
-        .fromTo(q('.b-slab'), { opacity: 0 }, { opacity: 0, duration: 0.01 }, 0)
-        .fromTo(q('.b-pane'), { opacity: 0, scaleY: 0, transformOrigin: '50% 100%' }, { opacity: 0, scaleY: 0, duration: 0.01 }, 0)
-        .fromTo(q('.b-crown, .b-side-glass, .b-span, .b-lobby, .b-lit'), { opacity: 0 }, { opacity: 0, duration: 0.01 }, 0)
-        .fromTo(q('.b-podium'), { scaleX: 0, transformOrigin: '50% 50%' }, { scaleX: 0, duration: 0.01 }, 0);
+    // السماء: نهار ثم غروب ثم ليل
+    tl.fromTo($('#dusk'), { opacity: 0 }, { opacity: 0.25, duration: 80 }, 0)
+      .to($('#dusk'), { opacity: 1, duration: 10, ease: 'power1.in' }, 86)
+      .fromTo($('#sun'), { attr: { cy: 170 } }, { attr: { cy: 760 }, duration: 94, ease: 'power1.in' }, 0)
+      .to($('#moon'), { opacity: 1, duration: 5 }, 91)
+      .to($('#stars'), { opacity: 1, duration: 8 }, 88);
 
-      // الكاميرا تقترب ثم تبتعد مع كل مبنى
-      tl.fromTo(world, { scale: 1.3, svgOrigin: ORIGIN }, { scale: 1, svgOrigin: ORIGIN, duration: span * 0.95, ease: 'power2.inOut', immediateRender: first }, a);
+    /* ---------- المرحلة 1: الحفر (0 → 14) ---------- */
+    tl.to(ex, { boom: -16, stick: 30, bucket: 45, duration: 1.4, ease: 'sine.inOut', yoyo: true, repeat: 7, onUpdate: drawEx }, 1)
+      .to($('#pit'), { scaleY: 1, duration: 10, ease: 'power1.inOut' }, 1.5)
+      .to($('#pile'), { scaleY: 1, duration: 10, ease: 'power1.out' }, 2)
+      .to(dustEl, { opacity: 1, duration: 1.5 }, 1)
+      .to(dustEl, { opacity: 0, duration: 2.5 }, 11.5);
 
-      // سور الموقع والأبراج المحيطة
-      tl.to(fence, { opacity: 1, duration: 1.5 }, a)
-        .to(fence, { opacity: 0, duration: 1.5 }, c1);
-      $$('.fset[data-set="' + B.set + '"] .rise').forEach(function (t, i) {
-        tl.to(t, { y: 0, duration: span * 0.45, ease: 'expo.out' }, a + span * 0.08 + i * span * 0.05);
-      });
+    /* ---------- المرحلة 2: التسليح والصب (16 → 30) ---------- */
+    tl.fromTo($('#excavator'), { x: -260, opacity: 1 }, { x: -760, opacity: 0, duration: 4, ease: 'power2.in' }, 15)
+      .to($('#rebarV'), { opacity: 1, duration: 1.5 }, 17)
+      .to($('#rebarH'), { opacity: 1, duration: 1.5 }, 18);
+    lift(15, 5, 0, 856, $('#loadRebar'));
+    tl.fromTo($('#truck'), { x: -1800 }, { x: 180, duration: 3.5, ease: 'power2.out' }, 19)
+      .to($('#chute'), { opacity: 1, duration: 0.6 }, 22.5)
+      .fromTo($('#concrete'), { opacity: 1, scaleY: 0, transformOrigin: '50% 100%' }, { opacity: 1, scaleY: 1, duration: 4.5, ease: 'power1.inOut', immediateRender: false }, 23)
+      .to($('#rebarH'), { opacity: 0, duration: 3 }, 24)
+      .to(dustEl, { opacity: 0.7, x: 40, duration: 1 }, 23)
+      .to(dustEl, { opacity: 0, duration: 2 }, 27.5)
+      .to($('#chute'), { opacity: 0, duration: 0.5 }, 27.8)
+      .to($('#truck'), { x: 2200, duration: 3.5, ease: 'power2.in' }, 28.4)
+      .to($('#podium'), { scaleX: 1, duration: 2, ease: 'power2.out' }, 27.6)
+      .to($('#starters'), { opacity: 1, duration: 1 }, 29);
 
-      // الهيكل: القاعدة ثم الأعمدة والأسقف
-      tl.to(q('.b-podium'), { scaleX: 1, duration: span * 0.05, ease: 'power2.out' }, a)
-        .to(sparksEl, { opacity: 1, duration: 0.5 }, s0)
-        .to(sparksEl, { opacity: 0, duration: 0.5 }, s0 + sLen);
-      var slabs = q('.b-slab').sort(function (m, n) {
-        return (+m.getAttribute('data-k') - +n.getAttribute('data-k')) || (+m.getAttribute('data-cx') - +n.getAttribute('data-cx'));
-      });
-      var step = sLen / slabs.length;
-      slabs.forEach(function (slab, n) {
-        var k = +slab.getAttribute('data-k'), cx = +slab.getAttribute('data-cx'), y = +slab.getAttribute('data-y');
-        var ti = slab.getAttribute('data-t'), floors = +slab.getAttribute('data-floors');
-        var at = s0 + n * step;
-        tl.to(q('.b-cols[data-t="' + ti + '"], .b-side-grow[data-t="' + ti + '"]'), { scaleY: (k + 1) / floors, duration: step * 0.45, ease: 'power1.out' }, at);
-        tl.fromTo(slab, { x: PICK.tx - cx, y: PICK.hy + 14 - y, opacity: 0 }, { x: PICK.tx - cx, y: PICK.hy + 14 - y, opacity: 1, duration: step * 0.1 }, at + step * 0.25);
-        tl.to(slab, { x: 0, y: 0, duration: step * 0.45, ease: 'sine.inOut' }, at + step * 0.35);
-        move([cx, y - 14], step * 0.45, at + step * 0.35);
-        move([PICK.tx, PICK.hy], step * 0.18, at + step * 0.8, 'power1.in');
-        tl.to(sparksEl, { x: cx, y: y + 2, duration: step * 0.1 }, at + step * 0.8);
-      });
-
-      // الواجهات
-      var panes = q('.b-pane');
-      tl.to(panes, { opacity: 1, scaleY: 1, duration: 1.2, stagger: Math.max(0.02, (g1 - g0 - 1.2) / panes.length), ease: 'power2.out' }, g0);
-      if (glassy) tl.to(q('.b-side-glass, .b-span'), { opacity: 1, duration: g1 - g0 }, g0);
-      if (glassy) {
-        tl.to(q('.b-slab .sc-slab-top, .b-slab .sc-slab-side'), { opacity: 0, duration: g1 - g0 }, g0)
-          .to(q('.b-slab .sc-slab'), { fill: '#1f3246', duration: g1 - g0 }, g0)
-          .to(q('.b-cols rect'), { fill: '#1a2b3d', duration: g1 - g0 }, g0);
-      }
-      move([PICK.tx, 420], g1 - g0, g0);
-
-      // التاج
-      tl.fromTo(q('.b-crown'), { y: -60, opacity: 0 }, { y: 0, opacity: 1, duration: (c1 - c0) * 0.5, stagger: (c1 - c0) * 0.14, ease: 'power2.out', immediateRender: false }, c0);
-      move([PICK.tx, PICK.hy], c1 - c0, c0);
-
-      // الافتتاح: إضاءة وممشى ونخيل
-      var lits = q('.b-lit');
-      if (glassy) tl.to(q('.b-lobby'), { opacity: 1, duration: 1 }, c1);
-      tl.to(lits, { opacity: 1, duration: 0.8, stagger: { each: Math.max(0.01, (b - c1 - 0.8) / Math.max(1, lits.length)), from: 'random' } }, c1)
-        .to(plaza, { opacity: 1, duration: 1.5 }, c1)
-        .to(palms, { scale: 1, duration: 1.5, stagger: 0.2, ease: 'back.out(2)' }, c1);
-
-      // الاختفاء في الأرض وظهور التالي
-      if (B.out) {
-        var o0 = B.out[0], o1 = B.out[1], d = o1 - o0;
-        tl.to(el, { y: 820, duration: d, ease: 'power3.in' }, o0)
-          .to(world, { scale: 1.3, svgOrigin: ORIGIN, duration: d, ease: 'power2.in' }, o0)
-          .to(plaza, { opacity: 0, duration: d * 0.5 }, o0)
-          .to(palms, { scale: 0, duration: d * 0.5 }, o0)
-          .fromTo(dust, { opacity: 0, scale: 0.4, svgOrigin: '0 ' + G }, { opacity: 1, scale: 1.25, svgOrigin: '0 ' + G, duration: d * 0.6, immediateRender: false }, o0 + d * 0.25)
-          .to(dust, { opacity: 0, duration: d * 0.45 }, o1 - d * 0.1);
-        $$('.fset[data-set="' + B.set + '"] .rise').forEach(function (t, i) {
-          tl.to(t, { y: +t.getAttribute('data-h'), duration: d, ease: 'power3.in' }, o0 + i * 0.25);
-        });
-      }
+    /* ---------- المرحلة 3: الأعمدة عمودًا عمودًا (32 → 42) ---------- */
+    cols.forEach(function (c, i) {
+      tl.to(cages[i], { scaleY: frac(LOBBY - 16), duration: 0.8, ease: 'power2.out' }, 32 + i * 1.3)
+        .to(c, { scaleY: frac(LOBBY), duration: 1.1, ease: 'power2.inOut' }, 32.5 + i * 1.3);
     });
+    tl.to(sideWall, { scaleY: frac(LOBBY), duration: 1.2, ease: 'power2.inOut' }, 39)
+      .to(scafs[0], { scaleY: 1, opacity: 1, duration: 1.2, ease: 'power2.out' }, 32.5)
+      .to(slabs[0], { scaleX: 1, opacity: 1, duration: 1.6, ease: 'power2.inOut' }, 40.2)
+      .to($('#starters'), { opacity: 0, duration: 0.6 }, 33)
+      .to(shadow, { attr: { width: 40 }, duration: 1.5 }, 40)
+      .to(slabCrew, { opacity: 1, duration: 0.8 }, 41.2);
+    lift(32, 4.2, -90, LOBBY - 60, $('#loadForm'));
+    lift(36.4, 3.8, 90, LOBBY - 60, $('#loadForm'));
 
-    // النهاية: كشافات ولمعة الزجاج
-    tl.to($('#beams'), { opacity: 1, duration: 3 }, 95)
-      .to($('#shine'), { opacity: 1, duration: 2 }, 96)
-      .fromTo($('#crane'), { opacity: 1 }, { opacity: 0.25, duration: 4 }, 95)
-      .fromTo($$('#trees .sc-tree'), { scale: 0, transformOrigin: '50% 100%' }, { scale: 1, duration: 2, stagger: 0.15, ease: 'back.out(2)' }, 94)
+    /* ---------- المرحلة 4: الطوابق مع السقالات (44 → 68) ---------- */
+    for (var f = 1; f <= FLOORS; f++) {
+      var at = FLOOR_START + (f - 1) * FLOOR_STEP;
+      var top = ceil(f);
+      tl.to(scafs[f], { scaleY: 1, opacity: 1, duration: 0.7, ease: 'power2.out' }, at)
+        .to(cages, { scaleY: frac(top - 16), duration: 0.7, stagger: 0.08, ease: 'power2.out' }, at + 0.1)
+        .to(cols, { scaleY: frac(top), duration: 1.0, stagger: 0.12, ease: 'power2.inOut' }, at + 0.35)
+        .to(sideWall, { scaleY: frac(top), duration: 1.0, ease: 'power2.inOut' }, at + 0.5)
+        .to(slabs[f], { scaleX: 1, opacity: 1, duration: 0.9, ease: 'power1.inOut' }, at + 1.8)
+        .to(dustEl, { y: top - G, x: 0, opacity: 0.35, duration: 0.2 }, at + 1.8)
+        .to(dustEl, { opacity: 0, duration: 0.6 }, at + 2.5)
+        .to(slabCrew, { y: top, duration: 0.35, ease: 'power1.inOut' }, at + 2.65)
+        .to(shadow, { attr: { width: 40 + f * 24 }, duration: 0.8 }, at + 2);
+      lift(at, 2.6, f % 2 ? -50 : 50, top - 58, $('#loadBucket'));
+    }
+
+    /* ---------- المرحلة 5: الواجهة الزجاجية (70 → 84) ---------- */
+    tl.to(cages, { opacity: 0, duration: 1.5 }, 70)
+      .to(panes, { opacity: 1, x: 0, duration: 0.55, stagger: 0.28, ease: 'power2.out' }, 70.2)
+      .to($('#sideGlass'), { opacity: 1, duration: 8 }, 72)
+      .to($('#spandrels'), { opacity: 1, duration: 7 }, 73)
+      .to($$('#slabs .sc-slab-top, #slabs .sc-slab-side'), { opacity: 0, duration: 8 }, 72)
+      .to($$('#slabs .sc-slab'), { fill: '#1d3044', duration: 8 }, 72)
+      .to(cols, { fill: '#1a2b3d', duration: 8 }, 72)
+      .fromTo($('#reflect'), { opacity: 0, x: 0 }, { opacity: 1, x: 120, duration: 10, immediateRender: false }, 72)
+      .to($('#reflect'), { x: 420, duration: 18 }, 82)
+      .to($('#lobby'), { opacity: 1, duration: 2 }, 80.5)
+      .to($$('#roof .roof-part'), { opacity: 1, y: 0, duration: 1.2, stagger: 0.6, ease: 'power2.out' }, 81);
+    lift(70, 3.8, -60, ROOF - 70, $('#loadGlass'));
+    lift(74.2, 3.8, 60, ROOF - 70, $('#loadGlass'));
+    lift(78.4, 3.6, 0, ROOF - 70, $('#loadGlass'));
+
+    /* ---------- المرحلة 6: التسليم والإضاءة (86 → 100) ---------- */
+    scafs.slice().reverse().forEach(function (s, i) {
+      tl.to(s, { opacity: 0, y: -8, duration: 0.6, ease: 'power1.in' }, 86 + i * 0.4);
+    });
+    tl.to([slabCrew, $('#groundCrew')], { opacity: 0, duration: 1 }, 86)
+      .to($('#craneTop'), { opacity: 0, y: -50, duration: 2, ease: 'power2.in' }, 89.5)
+      .to($('#mast'), { scaleY: 0, transformOrigin: '50% 100%', duration: 2.4, ease: 'power2.in' }, 91)
+      .to($('#crane'), { opacity: 0, duration: 1 }, 93.2)
+      .to([$('#fence'), $('#yard')], { opacity: 0, y: 20, duration: 1.5 }, 90)
+      .to($('#pile'), { scaleY: 0, duration: 1.5 }, 90)
+      .to($('#plaza'), { opacity: 1, duration: 1.5 }, 91)
+      .to($('#site'), { opacity: 0, duration: 1.5 }, 91)
+      .to($('#pit'), { opacity: 0, duration: 1.5 }, 91)
+      .to($$('#trees .sc-tree'), { scale: 1, duration: 1.4, stagger: 0.15, ease: 'back.out(2)' }, 92)
+      .to(shadow, { opacity: 0.25, duration: 4 }, 92)
+      .to($$('.sc-lamp-glow, .sc-lamp-pool'), { opacity: 1, duration: 1.5, stagger: 0.1 }, 92.5)
+      .to($$('.sc-city-lit'), { opacity: 1, duration: 3, stagger: 0.15 }, 92)
+      .to($('#canopy'), { opacity: 1, duration: 1 }, 93)
+      .to($$('#winLights rect'), { opacity: 1, duration: 0.8, stagger: { each: 0.1, from: 'random' } }, 93.5)
+      .to($('#uplights'), { opacity: 1, duration: 2 }, 95)
+      .to([$('#folks'), $('#parked')], { opacity: 1, duration: 1.5 }, 94.5)
       .to({}, { duration: 1 }, 99);
 
-    draw();
+    drawCrane();
+    drawEx();
     return tl;
   }
 
-  global.CityScene = {
-    FLOORS: FLOORS,
-    build: build,
-    fit: fit,
-    timeline: timeline,
-    floorsAt: floorsAt,
-    phaseAt: phaseAt
-  };
+  /** العنوان المناسب لموضع السكرول */
+  function captionAt(progress) {
+    var t = progress * 100, key = 'intro';
+    PHASES.forEach(function (ph) { if (t >= ph.at) key = ph.key; });
+    var floor = Math.floor((t - FLOOR_START) / FLOOR_STEP);
+    return { key: key, floor: Math.max(0, Math.min(FLOORS - 1, floor)), floors: FLOORS };
+  }
+
+  global.CityScene = { build: build, fit: fit, timeline: timeline, captionAt: captionAt, FLOORS: FLOORS };
 })(window);
